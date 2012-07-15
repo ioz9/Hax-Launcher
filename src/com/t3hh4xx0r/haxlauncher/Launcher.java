@@ -193,7 +193,7 @@ public final class Launcher extends Activity
     private FolderInfo mFolderInfo;
 
     private Hotseat mHotseat;
-    private View mAllAppsButton;
+    private View mMenuButton;
 
     private SearchDropTargetBar mSearchDropTargetBar;
     private AppsCustomizeTabHost mAppsCustomizeTabHost;
@@ -790,14 +790,14 @@ public final class Launcher extends Activity
                 mAppsCustomizeTabHost.findViewById(R.id.apps_customize_pane_content);
         mAppsCustomizeContent.setup(this, dragController);
 
-        // Get the all apps button
-        mAllAppsButton = findViewById(R.id.all_apps_button);
-        if (mAllAppsButton != null) {
-            mAllAppsButton.setOnTouchListener(new View.OnTouchListener() {
+        // Get the menu button
+        mMenuButton = findViewById(R.id.all_apps_button);
+        if (mMenuButton != null) {
+        	mMenuButton.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
                     if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_DOWN) {
-                        onTouchDownAllAppsButton(v);
+                        onTouchDownMenuButton(v);
                     }
                     return false;
                 }
@@ -1713,11 +1713,11 @@ public final class Launcher extends Activity
                 FolderIcon fi = (FolderIcon) v;
                 handleFolderClick(fi);
             }
-        } else if (v == mAllAppsButton) {
+        } else if (v == mMenuButton) {
             if (mState == State.APPS_CUSTOMIZE) {
                 showWorkspace(true);
             } else {
-                onClickAllAppsButton(v);
+                onClickMenuButton(v);
             }
         }
     }
@@ -1759,11 +1759,11 @@ public final class Launcher extends Activity
      *
      * @param v The view that was clicked.
      */
-    public void onClickAllAppsButton(View v) {
+    public void onClickMenuButton(View v) {
         showAllApps(true);
     }
 
-    public void onTouchDownAllAppsButton(View v) {
+    public void onTouchDownMenuButton(View v) {
         // Provide the same haptic feedback that the system offers for virtual keys.
         v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
     }
@@ -2441,9 +2441,9 @@ public final class Launcher extends Activity
             // We only need to animate in the dock divider if we're going from spring loaded mode
             showDockDivider(animated && mState == State.APPS_CUSTOMIZE_SPRING_LOADED);
 
-            // Set focus to the AppsCustomize button
-            if (mAllAppsButton != null) {
-                mAllAppsButton.requestFocus();
+            // Set focus to the menu button
+            if (mMenuButton != null) {
+            	mMenuButton.requestFocus();
             }
         }
 

@@ -2122,7 +2122,7 @@ public class Workspace extends SmoothPagedView
                 // is full
                 if (mTargetCell != null && mLauncher.isHotseatLayout(mDragTargetLayout)) {
                     Hotseat hotseat = mLauncher.getHotseat();
-                    if (Hotseat.isAllAppsButtonRank(
+                    if (Hotseat.isMenuButtonRank(
                             hotseat.getOrderInHotseat(mTargetCell[0], mTargetCell[1]))) {
                         return false;
                     }

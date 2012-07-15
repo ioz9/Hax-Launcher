@@ -924,7 +924,7 @@ public class LauncherModel extends BroadcastReceiver {
             int containerIndex = item.screen;
             if (item.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
                 // Return early if we detect that an item is under the hotseat button
-                if (Hotseat.isAllAppsButtonRank(item.screen)) {
+                if (Hotseat.isMenuButtonRank(item.screen)) {
                     return false;
                 }
 

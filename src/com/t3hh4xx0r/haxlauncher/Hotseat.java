@@ -29,7 +29,7 @@ import com.t3hh4xx0r.haxlauncher.R;
 
 public class Hotseat extends FrameLayout {
     private static final String TAG = "Hotseat";
-    private static final int sAllAppsButtonRank = 0; // In the middle of the dock
+    private static final int sMenuRank = 0; // On the left
 
     private Launcher mLauncher;
     private CellLayout mContent;
@@ -77,8 +77,8 @@ public class Hotseat extends FrameLayout {
     int getCellYFromOrder(int rank) {
         return mIsLandscape ? (mContent.getCountY() - (rank + 1)) : 0;
     }
-    public static boolean isAllAppsButtonRank(int rank) {
-        return rank == sAllAppsButtonRank;
+    public static boolean isMenuButtonRank(int rank) {
+        return rank == sMenuRank;
     }
 
     @Override
@@ -98,37 +98,37 @@ public class Hotseat extends FrameLayout {
         // Add the Apps button
         Context context = getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
-        BubbleTextView allAppsButton = (BubbleTextView)
+        BubbleTextView menuButton = (BubbleTextView)
                 inflater.inflate(R.layout.application, mContent, false);
-        allAppsButton.setCompoundDrawablesWithIntrinsicBounds(null,
+        menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
                 context.getResources().getDrawable(R.drawable.all_apps_button_icon), null, null);
         // allAppsButton.setText(context.getString(R.string.all_apps_button_label));
-        allAppsButton.setContentDescription(context.getString(R.string.all_apps_button_label));
-        allAppsButton.setOnTouchListener(new View.OnTouchListener() {
+        menuButton.setContentDescription(context.getString(R.string.all_apps_button_label));
+        menuButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (mLauncher != null &&
                     (event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_DOWN) {
-                    mLauncher.onTouchDownAllAppsButton(v);
+                    mLauncher.onTouchDownMenuButton(v);
                 }
                 return false;
             }
         });
 
-        allAppsButton.setOnClickListener(new View.OnClickListener() {
+        menuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(android.view.View v) {
                 if (mLauncher != null) {
-                    mLauncher.onClickAllAppsButton(v);
+                    mLauncher.onClickMenuButton(v);
                 }
             }
         });
 
         // Note: We do this to ensure that the hotseat is always laid out in the orientation of
         // the hotseat in order regardless of which orientation they were added
-        int x = getCellXFromOrder(sAllAppsButtonRank);
-        int y = getCellYFromOrder(sAllAppsButtonRank);
-        mContent.addViewToCellLayout(allAppsButton, -1, 0, new CellLayout.LayoutParams(x,y,1,1),
+        int x = getCellXFromOrder(sMenuRank);
+        int y = getCellYFromOrder(sMenuRank);
+        mContent.addViewToCellLayout(menuButton, -1, 0, new CellLayout.LayoutParams(x,y,1,1),
                 true);
     }
 }
