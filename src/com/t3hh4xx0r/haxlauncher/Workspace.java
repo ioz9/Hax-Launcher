@@ -39,6 +39,7 @@ import android.content.ClipDescription;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -54,6 +55,7 @@ import android.graphics.Region.Op;
 import android.graphics.drawable.Drawable;
 import android.os.IBinder;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Pair;
@@ -70,6 +72,7 @@ import android.widget.Toast;
 import com.t3hh4xx0r.haxlauncher.R;
 import com.t3hh4xx0r.haxlauncher.FolderIcon.FolderRingAnimator;
 import com.t3hh4xx0r.haxlauncher.InstallWidgetReceiver.WidgetMimeTypeHandlerData;
+import com.t3hh4xx0r.haxlauncher.preferences.Preferences;
 
 /**
  * The workspace is a wide area with a wallpaper and a finite number of pages.
@@ -148,8 +151,15 @@ public class Workspace extends SmoothPagedView
     private SpringLoadedDragController mSpringLoadedDragController;
     private float mSpringLoadedShrinkFactor;
 
+    
+    // Cell count specifications
+    
+    
     private static final int DEFAULT_CELL_COUNT_X = 4;
     private static final int DEFAULT_CELL_COUNT_Y = 4;
+
+    private static int USER_CELL_COUNT_X = 4;
+    private static int USER_CELL_COUNT_Y = 5;
 
     // State variable that indicates whether the pages are small (ie when you're
     // in all apps or customize mode)
@@ -236,6 +246,8 @@ public class Workspace extends SmoothPagedView
     private float[] mNewRotationYs;
     private float mTransitionProgress;
 
+	private SharedPreferences mSharedPrefs;
+
     /**
      * Used to inflate the Workspace from XML.
      *
@@ -255,6 +267,18 @@ public class Workspace extends SmoothPagedView
      */
     public Workspace(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+
+        final Resources res = context.getResources();
+        
+        // Get the shared preference for the Cell count, Use the system default if non specified
+        mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        int x = mSharedPrefs.getInt(context.getString(R.string.CellCountx), DEFAULT_CELL_COUNT_X);
+        int y = mSharedPrefs.getInt(context.getString(R.string.CellCounty), DEFAULT_CELL_COUNT_Y);
+        Log.i(TAG, "Got the value " + x + "for columns, and the value " + y +" for rows");
+        setCellCount(x,y);
+        
+        
+        
         mContentIsRefreshable = false;
         
         setOnHierarchyChangeListener(this);
@@ -266,13 +290,13 @@ public class Workspace extends SmoothPagedView
             getResources().getBoolean(R.bool.config_workspaceFadeAdjacentScreens);
         mWallpaperManager = WallpaperManager.getInstance(context);
 
-        int cellCountX = DEFAULT_CELL_COUNT_X;
-        int cellCountY = DEFAULT_CELL_COUNT_Y;
+        int cellCountX = USER_CELL_COUNT_X;
+        int cellCountY = USER_CELL_COUNT_Y;
 
         TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.Workspace, defStyle, 0);
 
-        final Resources res = context.getResources();
+        
         if (LauncherApplication.isScreenLarge()) {
             // Determine number of rows/columns dynamically
             // TODO: This code currently fails on tablets with an aspect ratio < 1.3.
@@ -315,6 +339,25 @@ public class Workspace extends SmoothPagedView
         // Disable multitouch across the workspace/all apps/customize tray
         setMotionEventSplittingEnabled(true);
     }
+    
+    /**
+     * 
+     * @param xCellCount Columns
+     * @param yCellCount Rows
+     */
+    public void setCellCount(int xCellCount, int yCellCount ){
+    	
+    	 USER_CELL_COUNT_X = xCellCount;
+         USER_CELL_COUNT_Y = yCellCount;
+    	
+    }
+    public void resetCellCount(){
+
+        SharedPreferences.Editor editor = mSharedPrefs.edit();
+        editor.putInt(Preferences.SCREEN_CELL_COUNT_X, DEFAULT_CELL_COUNT_X);
+        editor.putInt(Preferences.SCREEN_CELL_COUNT_Y, DEFAULT_CELL_COUNT_Y);
+        editor.commit();
+   }
 
     // estimate the size of a widget with spans hSpan, vSpan. return MAX_VALUE for each
     // dimension if unsuccessful

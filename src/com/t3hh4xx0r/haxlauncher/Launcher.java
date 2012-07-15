@@ -564,6 +564,8 @@ public final class Launcher extends Activity
         mAppsCustomizeTabHost.onResume();
         if (!mWorkspaceLoading) {
             final ViewTreeObserver observer = mWorkspace.getViewTreeObserver();
+            // Potential place to update app grid
+
             final Workspace workspace = mWorkspace;
             // We want to let Launcher draw itself at least once before we force it to build
             // layers on all the workspace pages, so that transitioning to Launcher from other
@@ -583,6 +585,8 @@ public final class Launcher extends Activity
             });
         }
         clearTypedText();
+        
+
     }
 
     @Override

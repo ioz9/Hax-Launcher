@@ -19,7 +19,14 @@
     <PreferenceCategory android:title="@string/preferences_interface_title">
         <!-- Homescreen -->
         <PreferenceScreen android:key="ui_homescreen"
-            android:title="@string/preferences_interface_homescreen_title">
+         	android:title="@string/preferences_interface_homescreen_title">
+            
+            <com.t3hh4xx0r.haxlauncher.preferences.NumberPickerPreference
+                android:key="@string/CellCountx" 
+            	android:title="Set column count"/>
+               <com.t3hh4xx0r.haxlauncher.preferences.NumberPickerPreference
+                android:key="@string/CellCounty" 
+            	android:title="Set row count"/>
 
         </PreferenceScreen>
 

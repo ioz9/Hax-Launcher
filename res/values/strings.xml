@@ -275,5 +275,10 @@ s -->
 
     <!-- Icons -->
     <string name="preferences_interface_icons_title">Icons</string>
+    <string name="CellCountx">Launcher.Cell.Preferences.X</string>
+    <string name="CellCounty">Launcher.Cell.Preferences.Y</string>
 
+     <string name="Cancel">Cancel</string>
+    <string name="Select">Select</string>
+    
 </resources>

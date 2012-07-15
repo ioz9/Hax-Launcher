@@ -16,18 +16,45 @@
 
 package com.t3hh4xx0r.haxlauncher.preferences;
 
-import com.t3hh4xx0r.haxlauncher.R;
-
+import android.app.ActivityManager;
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
+import android.util.Log;
+
+import com.t3hh4xx0r.haxlauncher.R;
 
 public class Preferences extends PreferenceActivity {
 
     private static final String TAG = "Launcher.Preferences";
+    NumberPickerPreference mXCount;
+    
+    private static final String LAUNCHER = "com.t3hh4xx0r.haxlauncher";
+
+    // Cell count preferences
+    public static final String SCREEN_CELL_COUNT= "Launcher.Cell.Preferences";
+    public static final String SCREEN_CELL_COUNT_X= "Launcher.Cell.Preferences.X";
+    public static final String SCREEN_CELL_COUNT_Y= "Launcher.Cell.Preferences.Y";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
+        
     }
+    
+    @Override
+    protected void onPause(){
+    	restartLauncher2();
+    }
+
+	public void restartLauncher2() {
+
+		Log.d(TAG, "About to kill the launcher application"); 
+		((ActivityManager)this.getSystemService(PreferenceActivity.ACTIVITY_SERVICE)).killBackgroundProcesses(LAUNCHER);
+		Intent i = this.getIntent();
+		finish();
+		startActivity(i);
+		  }
+    
 }
