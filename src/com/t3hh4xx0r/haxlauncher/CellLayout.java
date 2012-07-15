@@ -829,7 +829,8 @@ public class CellLayout extends ViewGroup {
         int heightSpecSize =  MeasureSpec.getSize(heightMeasureSpec);
 
         if (widthSpecMode == MeasureSpec.UNSPECIFIED || heightSpecMode == MeasureSpec.UNSPECIFIED) {
-            throw new RuntimeException("CellLayout cannot have UNSPECIFIED dimensions");
+        	//shitfuck
+            //throw new RuntimeException("CellLayout cannot have UNSPECIFIED dimensions");
         }
 
         int numWidthGaps = mCountX - 1;

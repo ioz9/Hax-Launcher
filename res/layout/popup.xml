@@ -1,0 +1,26 @@
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/linearLayout1"
+        android:layout_width="fill_parent"
+        android:orientation="vertical" 
+        android:layout_height="fill_parent"
+        android:src="@android:color/black"
+        android:background="@drawable/popup_frame" >
+
+ 	    <ViewFlipper
+        android:id="@+id/flipper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/black" >
+        
+	    <include
+            android:id="@+id/menu_main"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            layout="@layout/menu_main" />
+	    <include
+            android:id="@+id/menu_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            layout="@layout/menu_search" />	    
+		</ViewFlipper>		          		
+</LinearLayout>

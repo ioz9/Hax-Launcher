@@ -32,4 +32,6 @@
 
     <color name="workspace_all_apps_and_delete_zone_text_color">#CCFFFFFF</color>
     <color name="workspace_all_apps_and_delete_zone_text_shadow_color">#A0000000</color>
+    <color name="ics">#ff33b5e5</color>    
+    
 </resources>

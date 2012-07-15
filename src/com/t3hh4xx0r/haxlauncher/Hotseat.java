@@ -101,7 +101,7 @@ public class Hotseat extends FrameLayout {
         BubbleTextView menuButton = (BubbleTextView)
                 inflater.inflate(R.layout.application, mContent, false);
         menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
-                context.getResources().getDrawable(R.drawable.all_apps_button_icon), null, null);
+                context.getResources().getDrawable(R.drawable.startmenu_open), null, null);
         // allAppsButton.setText(context.getString(R.string.all_apps_button_label));
         menuButton.setContentDescription(context.getString(R.string.all_apps_button_label));
         menuButton.setOnTouchListener(new View.OnTouchListener() {
@@ -119,7 +119,8 @@ public class Hotseat extends FrameLayout {
             @Override
             public void onClick(android.view.View v) {
                 if (mLauncher != null) {
-                    mLauncher.onClickMenuButton(v);
+                	mLauncher.handleMenuClick(v);
+                	
                 }
             }
         });

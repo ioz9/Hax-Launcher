@@ -2125,6 +2125,8 @@ public class Workspace extends SmoothPagedView
                     if (Hotseat.isMenuButtonRank(
                             hotseat.getOrderInHotseat(mTargetCell[0], mTargetCell[1]))) {
                         return false;
+                    } else { 
+                    	return false;
                     }
                 }
 
@@ -2866,6 +2868,20 @@ public class Workspace extends SmoothPagedView
             boolean userFolderPending = willCreateUserFolder(info, mDragTargetLayout,
                     mTargetCell, false);
             boolean isOverFolder = dragOverView instanceof FolderIcon;
+            Hotseat hotseat = mLauncher.getHotseat();
+            if (Hotseat.isMenuButtonRank(
+                    hotseat.getOrderInHotseat(mTargetCell[0], mTargetCell[1]))) {            	
+            	//shitfuck
+            	if (dragOverView != null && dragOverView.getContext() != null && !mLauncher.menuIsOpen) {
+            		mLauncher.handleMenuClick(dragOverView);
+            		
+            	}
+            } else {
+            	if (mLauncher.menuIsOpen && mLauncher.dw != null) {
+            		mLauncher.dw.dismiss();
+            	}
+            }
+            
             if (dragOverView != mLastDragOverView) {
                 cancelFolderCreation();
                 if (mLastDragOverView != null && mLastDragOverView instanceof FolderIcon) {

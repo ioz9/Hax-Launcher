@@ -96,10 +96,12 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupWindow.OnDismissListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.t3hh4xx0r.haxlauncher.DropTarget.DragObject;
+import com.t3hh4xx0r.haxlauncher.menu.MenuPopup;
 import com.t3hh4xx0r.haxlauncher.preferences.PreferencesProvider;
 
 /**
@@ -191,9 +193,10 @@ public final class Launcher extends Activity
     private int[] mTmpAddItemCellCoordinates = new int[2];
 
     private FolderInfo mFolderInfo;
+    public MenuPopup dw;
 
     private Hotseat mHotseat;
-    private View mMenuButton;
+    View mMenuButton;
 
     private SearchDropTargetBar mSearchDropTargetBar;
     private AppsCustomizeTabHost mAppsCustomizeTabHost;
@@ -231,6 +234,7 @@ public final class Launcher extends Activity
     private final int mAdvanceStagger = 250;
     private long mAutoAdvanceSentTime;
     private long mAutoAdvanceTimeLeft = -1;
+    public boolean menuIsOpen = false;
     private HashMap<View, AppWidgetProviderInfo> mWidgetsToAdvance =
         new HashMap<View, AppWidgetProviderInfo>();
 
@@ -336,7 +340,7 @@ public final class Launcher extends Activity
         if (sGlobalSearchIcon[coi] == null || sVoiceSearchIcon[coi] == null ||
                 sAppMarketIcon[coi] == null) {
             updateAppMarketIcon();
-            searchVisible = updateGlobalSearchIcon();
+            //searchVisible = updateGlobalSearchIcon();
             voiceVisible = updateVoiceSearchIcon(searchVisible);
         }
         if (sGlobalSearchIcon[coi] != null) {
@@ -791,18 +795,7 @@ public final class Launcher extends Activity
         mAppsCustomizeContent.setup(this, dragController);
 
         // Get the menu button
-        mMenuButton = findViewById(R.id.all_apps_button);
-        if (mMenuButton != null) {
-        	mMenuButton.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_DOWN) {
-                        onTouchDownMenuButton(v);
-                    }
-                    return false;
-                }
-            });
-        }
+        getMenu();
         // Setup the drag controller (drop targets have to be added in reverse order in priority)
         dragController.setDragScoller(mWorkspace);
         dragController.setScrollView(mDragLayer);
@@ -813,7 +806,24 @@ public final class Launcher extends Activity
         }
     }
 
-    /**
+    public View getMenu() {
+    	mMenuButton = findViewById(R.id.all_apps_button);
+        if (mMenuButton != null) {
+        	mMenuButton.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_DOWN) {
+                        onTouchDownMenuButton(v);
+                    }
+                    return false;
+                }
+            });
+        	return mMenuButton;
+        }
+		return null;	
+	}
+
+	/**
      * Creates a view representing a shortcut.
      *
      * @param info The data structure describing the shortcut.
@@ -1717,7 +1727,7 @@ public final class Launcher extends Activity
             if (mState == State.APPS_CUSTOMIZE) {
                 showWorkspace(true);
             } else {
-                onClickMenuButton(v);
+                handleMenuClick(v);
             }
         }
     }
@@ -1759,7 +1769,7 @@ public final class Launcher extends Activity
      *
      * @param v The view that was clicked.
      */
-    public void onClickMenuButton(View v) {
+    public void onClickAppsOption(View v) {
         showAllApps(true);
     }
 
@@ -1862,6 +1872,23 @@ public final class Launcher extends Activity
                 }
             }
         }
+    }
+    
+    void handleMenuClick(final View v) {
+    	
+        dw = new MenuPopup.DemoPopupWindow(v);        
+        dw.showLikeQuickAction(0, 0);
+        menuIsOpen = true;
+        ((BubbleTextView) v).setCompoundDrawablesWithIntrinsicBounds(null,
+                v.getContext().getResources().getDrawable(R.drawable.startmenu_close), null, null);
+        dw.setOnDismissListener(new OnDismissListener() {
+			@Override
+			public void onDismiss() {
+				menuIsOpen = false;
+		        ((BubbleTextView) v).setCompoundDrawablesWithIntrinsicBounds(null,
+		                v.getContext().getResources().getDrawable(R.drawable.startmenu_open), null, null);
+		        }        	        	
+        });
     }
 
     private void growAndFadeOutFolderIcon(FolderIcon fi) {
