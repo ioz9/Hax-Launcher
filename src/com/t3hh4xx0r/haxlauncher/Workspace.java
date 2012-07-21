@@ -34,15 +34,18 @@ import android.app.WallpaperManager;
 import android.appwidget.AppWidgetHostView;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
@@ -117,6 +120,7 @@ public class Workspace extends SmoothPagedView
 
 
     private float mWallpaperScrollRatio = 1.0f;
+    private int[] NearestItem;
 
     private final WallpaperManager mWallpaperManager;
     private IBinder mWindowToken;
@@ -2276,7 +2280,10 @@ public class Workspace extends SmoothPagedView
                 // First we find the cell nearest to point at which the item is
                 // dropped, without any consideration to whether there is an item there.
                 mTargetCell = findNearestArea((int) mDragViewVisualCenter[0], (int)
-                        mDragViewVisualCenter[1], spanX, spanY, dropTargetLayout, mTargetCell);
+                        mDragViewVisualCenter[1], spanX, spanY, dropTargetLayout, mTargetCell);                
+                final ItemInfo cInfo = (ItemInfo) cell.getTag();
+                checkDropNonExternal(cInfo, findNearestArea((int) mDragViewVisualCenter[0], (int)
+                        mDragViewVisualCenter[1], spanX, spanY, dropTargetLayout, mTargetCell));
                 // If the item being dropped is a shortcut and the nearest drop
                 // cell also contains a shortcut, then create a folder with the two shortcuts.
                 if (!mInScrollArea && createUserFolderIfNecessary(cell, container,
@@ -2309,6 +2316,7 @@ public class Workspace extends SmoothPagedView
 
                     // update the item's position after drop
                     final ItemInfo info = (ItemInfo) cell.getTag();
+                    //checkDrop(info);
                     CellLayout.LayoutParams lp = (CellLayout.LayoutParams) cell.getLayoutParams();
                     dropTargetLayout.onMove(cell, mTargetCell[0], mTargetCell[1]);
                     lp.cellX = mTargetCell[0];
@@ -2868,13 +2876,11 @@ public class Workspace extends SmoothPagedView
             boolean userFolderPending = willCreateUserFolder(info, mDragTargetLayout,
                     mTargetCell, false);
             boolean isOverFolder = dragOverView instanceof FolderIcon;
-            Hotseat hotseat = mLauncher.getHotseat();
-            if (Hotseat.isMenuButtonRank(
-                    hotseat.getOrderInHotseat(mTargetCell[0], mTargetCell[1]))) {            	
+            if (mTargetCell[0] == 0 && mTargetCell[1] == 0) {            	
             	//shitfuck
-            	if (dragOverView != null && dragOverView.getContext() != null && !mLauncher.menuIsOpen) {
+            	if (!isOverFolder && dragOverView != null && dragOverView.getContext() != null && !mLauncher.menuIsOpen && !mLauncher.isAllAppsVisible()) {
             		mLauncher.handleMenuClick(dragOverView);
-            		
+            		Log.d("OPTIONS", Boolean.toString(mLauncher.isAllAppsCustomizeOpen())+":"+Boolean.toString(mLauncher.isAllAppsVisible()));
             	}
             } else {
             	if (mLauncher.menuIsOpen && mLauncher.dw != null) {
@@ -3017,11 +3023,13 @@ public class Workspace extends SmoothPagedView
 
         if (info instanceof PendingAddItemInfo) {
             final PendingAddItemInfo pendingInfo = (PendingAddItemInfo) dragInfo;
-
             boolean findNearestVacantCell = true;
             if (pendingInfo.itemType == LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT) {
                 mTargetCell = findNearestArea((int) touchXY[0], (int) touchXY[1], spanX, spanY,
                         cellLayout, mTargetCell);
+                Log.d("EXTERNAL+++++++++TOP+++++++++1", Integer.toString(findNearestArea((int) touchXY[0], (int) touchXY[1], spanX, spanY,
+                        cellLayout, mTargetCell)[0]) +":"+ Integer.toString(findNearestArea((int) touchXY[0], (int) touchXY[1], spanX, spanY,
+                                cellLayout, mTargetCell)[1]));
                 if (willCreateUserFolder((ItemInfo) d.dragInfo, mDragTargetLayout, mTargetCell,
                         true) || willAddToExistingUserFolder((ItemInfo) d.dragInfo,
                                 mDragTargetLayout, mTargetCell)) {
@@ -3052,9 +3060,9 @@ public class Workspace extends SmoothPagedView
                                 pendingInfo.itemType);
                     }
                     cellLayout.onDragExit();
-                }
-            };
-
+                }                                
+            };        	
+            
             // Now we animate the dragView, (ie. the widget or shortcut preview) into its final
             // location and size on the home screen.
             RectF r = estimateItemPosition(cellLayout, pendingInfo,
@@ -3077,6 +3085,7 @@ public class Workspace extends SmoothPagedView
             mLauncher.getDragLayer().animateViewIntoPosition(d.dragView, loc,
                     dragViewScale * cellLayoutScale, onAnimationCompleteRunnable);
         } else {
+
             // This is for other drag/drop cases, like dragging from All Apps
             View view = null;
 
@@ -3088,7 +3097,7 @@ public class Workspace extends SmoothPagedView
                     info = new ShortcutInfo((ApplicationInfo) info);
                 }
                 view = mLauncher.createShortcut(R.layout.application, cellLayout,
-                        (ShortcutInfo) info);
+                        (ShortcutInfo) info);                
                 break;
             case LauncherSettings.Favorites.ITEM_TYPE_FOLDER:
                 view = FolderIcon.fromXml(R.layout.folder_icon, mLauncher, cellLayout,
@@ -3103,6 +3112,10 @@ public class Workspace extends SmoothPagedView
             if (touchXY != null) {
                 mTargetCell = findNearestArea((int) touchXY[0], (int) touchXY[1], spanX, spanY,
                         cellLayout, mTargetCell);
+                Log.d("EXTERNAL+++++++++BOTTOM+++++++++2", Integer.toString(findNearestArea((int) touchXY[0], (int) touchXY[1], spanX, spanY,
+                        cellLayout, mTargetCell)[0]) +":"+ Integer.toString(findNearestArea((int) touchXY[0], (int) touchXY[1], spanX, spanY,
+                                cellLayout, mTargetCell)[1]));
+                
                 d.postAnimationRunnable = exitSpringLoadedRunnable;
                 if (createUserFolderIfNecessary(view, container, cellLayout, mTargetCell, true,
                         d.dragView, d.postAnimationRunnable)) {
@@ -3120,6 +3133,7 @@ public class Workspace extends SmoothPagedView
             } else {
                 cellLayout.findCellForSpan(mTargetCell, 1, 1);
             }
+            
             addInScreen(view, container, screen, mTargetCell[0], mTargetCell[1], info.spanX,
                     info.spanY, insertAtFirst);
             cellLayout.onDropChild(view);
@@ -3141,7 +3155,86 @@ public class Workspace extends SmoothPagedView
         }
     }
 
-    public void setFinalTransitionTransform(CellLayout layout) {
+    private void checkDropNonExternal(ItemInfo info, int[] place) {
+    	String name = "POOP";
+    	String packageName = "POOP";
+    	if (info instanceof PendingAddItemInfo) {
+    		name = ((PendingAddItemInfo) info).componentName.toString();  
+    		packageName = ((PendingAddItemInfo) info).componentName.getPackageName();  
+    	} else if (info instanceof ApplicationInfo) {
+    		name = ((ApplicationInfo) info).title.toString();
+    		packageName = ((ApplicationInfo) info).componentName.getPackageName();  
+    	} else if (info instanceof FolderInfo) {
+    		StringBuilder sB = new StringBuilder();
+    		for (int i=0;i<((FolderInfo) info).contents.size();i++) {
+    			sB.append(((FolderInfo) info).contents.get(i).toString());
+    		}
+    		name = sB.toString();
+    	} else if (info instanceof ShortcutInfo) {
+    		name = ((ShortcutInfo) info).title.toString();
+			packageName = ((ShortcutInfo) info).intent.toString().split("cmp=")[1].split("/")[0];
+    	}
+		if (place[0] == 0 && place[1] == 0) {       
+			mLauncher.handleMenuClick(null);
+			switch (info.itemType) {
+	        case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
+	        	Log.d("ITEM TYPE", "IS A APPLICATION");
+	    		Log.d("ITEM DROPPED MOTHAFUCKA", name);
+	    		mLauncher.setHotseat(1, getIcon(info), name, getIntent(packageName));
+	        	break;
+	        case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
+	        	Log.d("ITEM TYPE", "IS A SHORTCUT");
+	    		Log.d("ITEM DROPPED MOTHAFUCKA", name);
+	        	break;
+	        case LauncherSettings.Favorites.ITEM_TYPE_FOLDER:
+	        	Log.d("ITEM TYPE", "IS A FOLDER");
+	    		Log.d("ITEM DROPPED MOTHAFUCKA", name);
+	        	break;
+	        default:
+	        	Log.d("ITEM TYPE", "IS UNKNOWN");
+	    		Log.d("ITEM DROPPED MOTHAFUCKA", name);
+	    		break;
+			}
+		} else {
+			Log.d(Integer.toString(place[0]), Integer.toString(place[1]));
+		}
+	}
+    
+    private String getIntent(String name) {
+        try{
+            Intent intent = new Intent("android.intent.action.MAIN");
+            intent.addCategory("android.intent.category.LAUNCHER");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            
+            List<ResolveInfo> resolveinfo_list = getContext().getPackageManager().queryIntentActivities(intent, 0);
+
+            for(ResolveInfo info:resolveinfo_list){
+                if(info.activityInfo.packageName.equalsIgnoreCase(name)){
+                	return info.activityInfo.packageName;
+                } 
+            }
+        }
+        catch (ActivityNotFoundException e) {
+            Toast.makeText(getContext(), "There was a problem loading the application: "+name,Toast.LENGTH_SHORT).show();
+        }
+		return null;
+    }
+
+	private Bitmap getIcon(Object info) {
+    	Bitmap b = null;
+       	if (info instanceof ApplicationInfo) {
+    		b = ((ApplicationInfo) info).iconBitmap;
+    	} else if (info instanceof ShortcutInfo) {
+    		b = ((ShortcutInfo) info).getIcon(mIconCache);
+    	}
+       	if (b == null) {
+       		return BitmapFactory.decodeResource(getResources(), R.drawable.all_apps_button_icon);
+       	} else {
+       		return b;
+       	}
+    }
+
+	public void setFinalTransitionTransform(CellLayout layout) {
         if (isSwitchingState()) {
             int index = indexOfChild(layout);
             mCurrentScaleX = layout.getScaleX();
@@ -3223,14 +3316,20 @@ public class Workspace extends SmoothPagedView
 
     /**
      * Called at the end of a drag which originated on the workspace.
+	 * shit
      */
     public void onDropCompleted(View target, DragObject d, boolean success) {
         if (success) {
+            Log.d("WOAH====================", "0");
             if (target != this) {
+                Log.d("WOAH====================", "1");
                 if (mDragInfo != null) {
+                    Log.d("WOAH====================", "2");
                     getParentCellLayoutForView(mDragInfo.cell).removeView(mDragInfo.cell);
                     if (mDragInfo.cell instanceof DropTarget) {
                         mDragController.removeDropTarget((DropTarget) mDragInfo.cell);
+                    } else {
+                        Log.d("WOAH====================", "3");
                     }
                 }
             }
@@ -3238,20 +3337,27 @@ public class Workspace extends SmoothPagedView
             // NOTE: When 'success' is true, onDragExit is called by the DragController before
             // calling onDropCompleted(). We call it ourselves here, but maybe this should be
             // moved into DragController.cancelDrag().
+            Log.d("WOAH====================", "4");
             doDragExit(null);
             CellLayout cellLayout;
             if (mLauncher.isHotseatLayout(target)) {
+                Log.d("WOAH====================", "5");
                 cellLayout = mLauncher.getHotseat().getLayout();
             } else {
                 cellLayout = (CellLayout) getChildAt(mDragInfo.screen);
+                Log.d("WOAH====================", "6");
             }
             cellLayout.onDropChild(mDragInfo.cell);
         }
         if (d.cancelled &&  mDragInfo.cell != null) {
+            Log.d("WOAH====================", "7");
                 mDragInfo.cell.setVisibility(VISIBLE);
+        } else {
+            Log.d("WOAH====================", "8");
         }
         mDragOutline = null;
         mDragInfo = null;
+
     }
 
     public boolean isDropEnabled() {
@@ -3444,6 +3550,7 @@ public class Workspace extends SmoothPagedView
     }
 
     void removeItems(final ArrayList<ApplicationInfo> apps) {
+
         final AppWidgetManager widgets = AppWidgetManager.getInstance(getContext());
 
         final HashSet<String> packageNames = new HashSet<String>();
@@ -3477,6 +3584,7 @@ public class Workspace extends SmoothPagedView
                                     if (packageName.equals(name.getPackageName())) {
                                         LauncherModel.deleteItemFromDatabase(mLauncher, info);
                                         childrenToRemove.add(view);
+Log.d("REMOVING SHIT YO", "FUCKING REMOVED");
                                     }
                                 }
                             }

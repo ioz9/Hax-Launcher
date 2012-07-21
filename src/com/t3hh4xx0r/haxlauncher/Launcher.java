@@ -17,6 +17,7 @@
 
 package com.t3hh4xx0r.haxlauncher;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileDescriptor;
@@ -59,6 +60,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -68,6 +70,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Parcel;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
@@ -193,7 +196,7 @@ public final class Launcher extends Activity
     private int[] mTmpAddItemCellCoordinates = new int[2];
 
     private FolderInfo mFolderInfo;
-    public MenuPopup dw;
+    public MenuPopup.DemoPopupWindow dw;
 
     private Hotseat mHotseat;
     View mMenuButton;
@@ -834,7 +837,7 @@ public final class Launcher extends Activity
         return createShortcut(R.layout.application,
                 (ViewGroup) mWorkspace.getChildAt(mWorkspace.getCurrentPage()), info);
     }
-
+    
     /**
      * Creates a view representing a shortcut inflated from the specified resource.
      *
@@ -850,7 +853,7 @@ public final class Launcher extends Activity
         favorite.setOnClickListener(this);
         return favorite;
     }
-
+    
     /**
      * Add an application shortcut to the workspace.
      *
@@ -1140,6 +1143,7 @@ public final class Launcher extends Activity
         View v = hostView.findViewById(appWidgetInfo.autoAdvanceViewId);
 /*        if (v instanceof Advanceable) {
             mWidgetsToAdvance.put(hostView, appWidgetInfo);
+            //cock
             ((Advanceable) v).fyiWillBeAdvancedByHostKThx();
             updateRunning();
         }*/
@@ -1540,6 +1544,7 @@ public final class Launcher extends Activity
      */
     void addAppWidgetFromDrop(PendingAddWidgetInfo info, long container, int screen,
             int[] cell, int[] loc) {
+    	Log.d("WHOAH", "MY ASSSSSSS");
         resetAddInfo();
         mPendingAddInfo.container = info.container = container;
         mPendingAddInfo.screen = info.screen = screen;
@@ -1875,20 +1880,35 @@ public final class Launcher extends Activity
     }
     
     void handleMenuClick(final View v) {
-    	
-        dw = new MenuPopup.DemoPopupWindow(v);        
-        dw.showLikeQuickAction(0, 0);
-        menuIsOpen = true;
-        ((BubbleTextView) v).setCompoundDrawablesWithIntrinsicBounds(null,
-                v.getContext().getResources().getDrawable(R.drawable.startmenu_close), null, null);
-        dw.setOnDismissListener(new OnDismissListener() {
-			@Override
-			public void onDismiss() {
-				menuIsOpen = false;
-		        ((BubbleTextView) v).setCompoundDrawablesWithIntrinsicBounds(null,
-		                v.getContext().getResources().getDrawable(R.drawable.startmenu_open), null, null);
-		        }        	        	
-        });
+    	if (menuIsOpen) {
+    		dw.dismiss();
+    	} else {
+	        dw = new MenuPopup.DemoPopupWindow(v, this);        
+	        dw.showLikeQuickAction(0, 0);
+	        menuIsOpen = true;
+	        ((BubbleTextView) v).setCompoundDrawablesWithIntrinsicBounds(null,
+	                v.getContext().getResources().getDrawable(R.drawable.startmenu_close), null, null);
+	        dw.setOnDismissListener(new OnDismissListener() {
+				@Override
+				public void onDismiss() {
+					menuIsOpen = false;
+			        ((BubbleTextView) v).setCompoundDrawablesWithIntrinsicBounds(null,
+			                v.getContext().getResources().getDrawable(R.drawable.startmenu_open), null, null);
+			        }        	        	
+	        });
+    	}
+    }
+    
+    public void setHotseat(int pos, Bitmap icon, String name, String i) {
+    	Bitmap photo = icon;
+    	ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    	photo.compress(Bitmap.CompressFormat.PNG, 100, bos);
+    	byte[] bArray = bos.toByteArray();  
+
+    	DBAdapter db = new DBAdapter(this);
+    	db.open();
+    	db.insertHotseat(i, bArray, name);
+    	db.close();
     }
 
     private void growAndFadeOutFolderIcon(FolderIcon fi) {
@@ -2487,7 +2507,7 @@ public final class Launcher extends Activity
         getWindow().getDecorView().sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_SELECTED);
     }
 
-    void showAllApps(boolean animated) {
+    public void showAllApps(boolean animated) {
         if (mState != State.WORKSPACE) return;
 
         showAppsCustomizeHelper(animated, false);
@@ -2606,6 +2626,7 @@ public final class Launcher extends Activity
      * Hides the hotseat area.
      */
     void hideHotseat(boolean animated) {
+    	//WHOAH TABLET SHIT YO
         if (!LauncherApplication.isScreenLarge()) {
             if (animated) {
                 int duration = mSearchDropTargetBar.getTransitionOutDuration();
@@ -3247,6 +3268,7 @@ public final class Launcher extends Activity
         return oriMap[(d.getRotation() + indexOffset) % 4];
     }
 
+    //WHOAH TABLET SHIT
     public void lockScreenOrientationOnLargeUI() {
         if (LauncherApplication.isScreenLarge()) {
             setRequestedOrientation(mapConfigurationOriActivityInfoOri(getResources()

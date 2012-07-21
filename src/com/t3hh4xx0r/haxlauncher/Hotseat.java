@@ -124,6 +124,14 @@ public class Hotseat extends FrameLayout {
                 }
             }
         });
+        menuButton.setOnLongClickListener(new OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				mLauncher.showAllApps(true);
+				return true;
+			}
+        	
+        });
 
         // Note: We do this to ensure that the hotseat is always laid out in the orientation of
         // the hotseat in order regardless of which orientation they were added

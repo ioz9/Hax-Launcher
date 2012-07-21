@@ -1,9 +1,30 @@
 package com.t3hh4xx0r.haxlauncher.menu;
 
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.TreeSet;
+
+import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.provider.ContactsContract;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -15,10 +36,20 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.ViewFlipper;
 
+import com.t3hh4xx0r.haxlauncher.DBAdapter;
+import com.t3hh4xx0r.haxlauncher.Launcher;
 import com.t3hh4xx0r.haxlauncher.R;
 
 /**
@@ -34,13 +65,22 @@ public class MenuPopup {
 	private Drawable background = null;
 	private final WindowManager windowManager;
     private static ViewFlipper flipper;
+    private static ViewFlipper tFlipper;
+    private static Launcher mLauncher;
 
     // animations
     private static Animation slideLeftIn;
     private static Animation slideLeftOut;
     private static Animation slideRightIn;
     private static Animation slideRightOut;
+    private static Animation slideLeftInHalf;
+    private static Animation slideLeftOutHalf;
+    private static Animation slideRightInHalf;
+    private static Animation slideRightOutHalf;    
     
+    EditText searchBox;
+    LinearLayout dock;
+    String[] hotseatIntents;
 
 	/**
 	 * Create a BetterPopupWindow
@@ -51,7 +91,6 @@ public class MenuPopup {
 	public MenuPopup(View anchor) {
 		this.anchor = anchor;
 		this.window = new PopupWindow(anchor.getContext());
-        
 		// when a touch even happens outside of the window
 		// make the window go away
 		this.window.setTouchInterceptor(new OnTouchListener() {
@@ -199,15 +238,9 @@ public class MenuPopup {
 		int screenWidth = this.windowManager.getDefaultDisplay().getWidth();
 
 		int xPos = ((screenWidth - rootWidth) / 2) + xOffset;
-		int yPos = anchorRect.top - rootHeight + yOffset;
+		int yPos = ((anchorRect.top - rootHeight) / 3);
 
-		// display on bottom
-		if(rootHeight > anchorRect.top) {
-			yPos = anchorRect.bottom + yOffset;
-			this.window.setAnimationStyle(R.style.Animations_GrowFromTop);
-		}
-
-		this.window.showAtLocation(this.anchor, Gravity.NO_GRAVITY, xPos, yPos);
+		this.window.showAtLocation(this.anchor, Gravity.TOP, xPos, yPos);
 	}
 
 	public void dismiss() {
@@ -215,23 +248,83 @@ public class MenuPopup {
 	}
 	
 	public static class DemoPopupWindow extends MenuPopup implements OnClickListener {
-		public DemoPopupWindow(View anchor) {
+		public DemoPopupWindow(View anchor, Launcher launcher) {
                   super(anchor);
+                  mLauncher = launcher;
         }
-
 	
         @Override
         protected void onCreate() {
 			LayoutInflater inflater = (LayoutInflater) this.anchor.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         	ViewGroup root = (ViewGroup) inflater.inflate(R.layout.popup, null);
          	flipper = (ViewFlipper) root.findViewById(R.id.flipper);
+         	tFlipper = (ViewFlipper) root.findViewById(R.id.title_flipper);
             slideLeftIn = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_in_left);
             slideLeftOut = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_out_left);
             slideRightIn = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_in_right);
             slideRightOut = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_out_right);
-            
-            LinearLayout dock = (LinearLayout) root.findViewById(R.id.dock);
-            
+            slideLeftInHalf = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_in_left_half);
+            slideLeftOutHalf = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_out_left_half);
+            slideRightInHalf = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_in_right_half);
+            slideRightOutHalf = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_out_right_half);            
+            dock = (LinearLayout) root.findViewById(R.id.dock);
+            TextView menum = (TextView) root.findViewById(R.id.main_main);
+            menum.setOnClickListener(this);
+            TextView searchm = (TextView) root.findViewById(R.id.search_main);
+            searchm.setOnClickListener(this);
+            TextView menus = (TextView) root.findViewById(R.id.main_search);
+            menus.setOnClickListener(this);
+            TextView searchs = (TextView) root.findViewById(R.id.search_search);
+            searchs.setOnClickListener(this);
+            RelativeLayout allApps = (RelativeLayout) root.findViewById(R.id.apps);
+            allApps.setOnClickListener(this);
+            RelativeLayout search = (RelativeLayout) root.findViewById(R.id.search);
+            RelativeLayout settings = (RelativeLayout) root.findViewById(R.id.settings);
+            search.setOnClickListener(this);
+            settings.setOnClickListener(this);
+            searchBox = (EditText) root.findViewById(R.id.search_box);
+            final ListView list = (ListView) root.findViewById(R.id.list);
+            list.setOnItemClickListener(new OnItemClickListener() {
+				@Override
+				public void onItemClick(AdapterView<?> v1, View v,
+						int pos, long id) {
+					 List<ApplicationInfo> applications = v.getContext().getPackageManager().getInstalledApplications(0);
+					 for (int n=0; n < applications.size(); n++) {
+						if (applications.get(n).loadLabel(v.getContext().getPackageManager()).equals((list.getItemAtPosition(pos)))) {							
+							startApplication(applications.get(n).packageName);
+							break;
+						}
+					 }
+					 //SHITFUCKCOCK
+				}
+            });
+            final String lv_arr[]= getSearchableItems(anchor.getContext());
+            final ArrayList<String> arr_sort= new ArrayList<String>();
+            final SearchAdapter a = new SearchAdapter(anchor.getContext(), arr_sort, (Activity) anchor.getContext());
+            list.setAdapter(a);
+            searchBox.addTextChangedListener(new TextWatcher() {
+            	public void afterTextChanged(Editable s) {
+            	}
+
+            	public void beforeTextChanged(CharSequence s, int start, int count,
+            			int after) {
+            	}
+
+				@Override
+				public void onTextChanged(CharSequence s, int start,
+						int before, int count) {
+					int length = searchBox.getText().length();
+					arr_sort.clear();
+					for(int i=0;i<lv_arr.length;i++){
+						if(length<=lv_arr[i].length() && length != 0){
+							if(searchBox.getText().toString().equalsIgnoreCase((String) lv_arr[i].subSequence(0, length))){
+								arr_sort.add(lv_arr[i]);
+							}
+						}										
+					}
+					a.notifyDataSetChanged();
+				}					
+            });
 //         	for(int i = 0, icount = root.getChildCount() ; i < icount ; i++) {
 //             	View v = root.getChildAt(i);
 //            	if(v instanceof LinearLayout) {
@@ -242,21 +335,126 @@ public class MenuPopup {
 //               	     }
 //                }
 //            }
+            setupHotseats(dock, this.anchor.getContext());
             this.setContentView(root);
         }
 
+		private String[] getSearchableItems(Context context) {
+			ArrayList<String> list = new ArrayList<String>();
+			Cursor c = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
+			final PackageManager pm = context.getPackageManager();
+			while (c.moveToNext()) {
+				list.add(c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)) + " - " + 
+						c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
+			}
+			List<ApplicationInfo> applications = context.getPackageManager().getInstalledApplications(0);
+			for (int n=0; n < applications.size(); n++) {
+				if ((applications.get(n).flags & ApplicationInfo.FLAG_SYSTEM) != 1) {
+			        list.add(applications.get(n).loadLabel(pm).toString());
+			    }
+		    }			
+			Collection<String> itemsFinal = new TreeSet<String>(Collator.getInstance());
+			for (int i=0;i<list.size();i++) {
+				itemsFinal.add(list.get(i));
+			}
+			return (String[]) itemsFinal.toArray(new String[itemsFinal.size()]);	
+		}
+
+		private void setupHotseats(LinearLayout dock, Context ctx) {
+			DBAdapter db = new DBAdapter(ctx);
+			db.open();
+			Cursor c = db.getAllHotseats();
+			hotseatIntents = new String[c.getCount()];
+			while (c.moveToNext()) {
+				hotseatIntents[c.getPosition()] = c.getString(c.getColumnIndex("intent"));
+				ImageView hotseat = new ImageView(ctx);
+				byte[] icon = c.getBlob(c.getColumnIndex("icon"));
+				Bitmap b = BitmapFactory.decodeByteArray(icon, 0, icon.length);
+				hotseat.setImageBitmap(b);
+				dock.addView(hotseat);
+				hotseat.setOnClickListener(this);
+				hotseat.setId(c.getPosition());
+			}
+			c.close();
+			db.close();
+		}
+
 		@Override
 		public void onClick(View v) {
+			if (v.getId() == R.id.search_main || v.getId() == R.id.search_search || v.getId() == R.id.search) {
+				searchBox.setText("");
+				flipTo(1);
+			} else if (v.getId() == R.id.main_main || v.getId() == R.id.main_search) {
+				flipTo(0);
+				searchBox.setText("");
+			} else if (v.getId() == R.id.apps) {
+				dismiss();
+				mLauncher.showAllApps(true);
+			} else if (v.getId() == R.id.settings) {
+				
+			} else if (v.getId() < dock.getChildCount()) {
+				startApplication(hotseatIntents[v.getId()]);
+			}
 		}
 		
 		private void inFromRight() {
 			flipper.setInAnimation(slideRightIn);
 			flipper.setOutAnimation(slideLeftOut);
+			tFlipper.setInAnimation(slideRightInHalf);
+			tFlipper.setOutAnimation(slideLeftOutHalf);
 		}
 		
 		private void inFromLeft() {
 			flipper.setInAnimation(slideLeftIn);
 			flipper.setOutAnimation(slideRightOut);
+			tFlipper.setInAnimation(slideLeftInHalf);
+			tFlipper.setOutAnimation(slideRightOutHalf);			
 		}
+		
+		public void flipTo(int where) {
+			if (where != flipper.getDisplayedChild()) {
+				if (where > flipper.getDisplayedChild()) {
+					inFromRight();				
+				} else {
+					inFromLeft();
+				}
+				flipper.setDisplayedChild(where);
+				tFlipper.setDisplayedChild(where);
+			}
+		}	
+		
+		public void setHotseat(int pos, Bitmap icon) {
+			((ImageView) dock.getChildAt(2)).setImageBitmap(icon);
+		}
+	}
+	
+	
+	public void startApplication(String packageName) {
+	    try  {
+	        Intent intent = new Intent("android.intent.action.MAIN");
+	        intent.addCategory("android.intent.category.LAUNCHER");
+	        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+	        List<ResolveInfo> resolveInfoList = anchor.getContext().getPackageManager().queryIntentActivities(intent, 0);
+
+	        for(ResolveInfo info : resolveInfoList)
+	            if(info.activityInfo.packageName.equalsIgnoreCase(packageName)) {
+	                launchComponent(info.activityInfo.packageName, info.activityInfo.name);
+	                return;
+	            } else {
+	            	Log.d(info.activityInfo.packageName, packageName);
+	            }
+
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	    }
+	}
+
+	private void launchComponent(String packageName, String name) {
+	    Intent intent = new Intent("android.intent.action.MAIN");
+	    intent.addCategory("android.intent.category.LAUNCHER");
+	    intent.setComponent(new ComponentName(packageName, name));
+	    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+	    anchor.getContext().startActivity(intent);
 	}
 }

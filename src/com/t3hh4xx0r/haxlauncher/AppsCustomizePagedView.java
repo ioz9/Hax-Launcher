@@ -619,6 +619,7 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
             // drop in Workspace
             mLauncher.exitSpringLoadedDragMode();
         }
+        
         mLauncher.unlockScreenOrientationOnLargeUI();
 
     }

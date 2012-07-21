@@ -1,6 +1,6 @@
 <resources>
     <bool name="config_hardwareAccelerated">true</bool>
-    <bool name="config_largeHeap">false</bool>
+    <bool name="config_largeHeap">true</bool>
 
 <!-- AllApps/Customize/AppsCustomize -->
     <!-- The alpha of the AppsCustomize bg in spring loaded mode -->

@@ -25,6 +25,7 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.drawable.TransitionDrawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
@@ -201,15 +202,19 @@ public class DeleteDropTarget extends ButtonDropTarget {
 
         if (isAllAppsApplication(d.dragSource, item)) {
             // Uninstall the application if it is being dragged from AppsCustomize
+        	Log.d("POOBALLS", "0");
             mLauncher.startApplicationUninstallActivity((ApplicationInfo) item);
         } else if (isWorkspaceOrFolderApplication(d)) {
             LauncherModel.deleteItemFromDatabase(mLauncher, item);
+        	Log.d("POOBALLS", "1");
         } else if (isWorkspaceFolder(d)) {
             // Remove the folder from the workspace and delete the contents from launcher model
             FolderInfo folderInfo = (FolderInfo) item;
             mLauncher.removeFolder(folderInfo);
+        	Log.d("POOBALLS", "2");
             LauncherModel.deleteFolderContentsFromDatabase(mLauncher, folderInfo);
         } else if (isWorkspaceOrFolderWidget(d)) {
+        	Log.d("POOBALLS", "3");
             // Remove the widget from the workspace
             mLauncher.removeAppWidget((LauncherAppWidgetInfo) item);
             LauncherModel.deleteItemFromDatabase(mLauncher, item);
@@ -217,6 +222,8 @@ public class DeleteDropTarget extends ButtonDropTarget {
             final LauncherAppWidgetInfo launcherAppWidgetInfo = (LauncherAppWidgetInfo) item;
             final LauncherAppWidgetHost appWidgetHost = mLauncher.getAppWidgetHost();
             if (appWidgetHost != null) {
+            	Log.d("POOBALLS", "4");
+
                 // Deleting an app widget ID is a void call but writes to disk before returning
                 // to the caller...
                 new Thread("deleteAppWidgetId") {
@@ -230,5 +237,7 @@ public class DeleteDropTarget extends ButtonDropTarget {
 
     public void onDrop(DragObject d) {
         animateToTrashAndCompleteDrop(d);
+    	Log.d("POOBALLS", "5");
+
     }
 }
