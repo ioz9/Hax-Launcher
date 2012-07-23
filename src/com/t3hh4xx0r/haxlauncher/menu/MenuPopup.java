@@ -51,6 +51,7 @@ import android.widget.ViewFlipper;
 import com.t3hh4xx0r.haxlauncher.DBAdapter;
 import com.t3hh4xx0r.haxlauncher.Launcher;
 import com.t3hh4xx0r.haxlauncher.R;
+import com.t3hh4xx0r.haxlauncher.menu.livepanel.WeatherLivePanel;
 
 /**
  * This class does most of the work of wrapping the {@link PopupWindow} so it's simpler to use.
@@ -81,6 +82,7 @@ public class MenuPopup {
     EditText searchBox;
     LinearLayout dock;
     String[] hotseatIntents;
+    String[] sortedNums;
 
 	/**
 	 * Create a BetterPopupWindow
@@ -266,7 +268,8 @@ public class MenuPopup {
             slideLeftInHalf = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_in_left_half);
             slideLeftOutHalf = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_out_left_half);
             slideRightInHalf = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_in_right_half);
-            slideRightOutHalf = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_out_right_half);            
+            slideRightOutHalf = AnimationUtils.loadAnimation(anchor.getContext(), R.anim.slide_out_right_half);                        
+            getLivePanel(this.anchor.getContext(), root);
             dock = (LinearLayout) root.findViewById(R.id.dock);
             TextView menum = (TextView) root.findViewById(R.id.main_main);
             menum.setOnClickListener(this);
@@ -288,14 +291,22 @@ public class MenuPopup {
 				@Override
 				public void onItemClick(AdapterView<?> v1, View v,
 						int pos, long id) {
+					boolean found = false;
 					 List<ApplicationInfo> applications = v.getContext().getPackageManager().getInstalledApplications(0);
 					 for (int n=0; n < applications.size(); n++) {
 						if (applications.get(n).loadLabel(v.getContext().getPackageManager()).equals((list.getItemAtPosition(pos)))) {							
 							startApplication(applications.get(n).packageName);
+							found = true;
 							break;
 						}
 					 }
-					 //SHITFUCKCOCK
+					 
+					 if(!found) {
+						 Intent i = new Intent(); 
+						 i.setAction(ContactsContract.Intents.SHOW_OR_CREATE_CONTACT); 
+						 i.setData(Uri.fromParts("tel", parsePhone(list.getItemAtPosition(pos).toString()), null)); 
+						 v.getContext().startActivity(i);
+					 }
 				}
             });
             final String lv_arr[]= getSearchableItems(anchor.getContext());
@@ -339,14 +350,39 @@ public class MenuPopup {
             this.setContentView(root);
         }
 
+		private void getLivePanel(Context context, ViewGroup root) {
+			//modify please
+			if (true) {
+				WeatherLivePanel panel = new WeatherLivePanel(context);
+				root.addView(panel);
+			}
+		}
+
+		protected String parsePhone(String full) {
+			String phone = null;
+			if (Character.isLetter(full.charAt(0))) {
+				phone = full.split("- ")[1];
+			} else {
+				if (full.startsWith("+")) {
+					full.replace("+", "");
+				}
+				phone = full;
+			}
+			return phone;
+		}
+
 		private String[] getSearchableItems(Context context) {
 			ArrayList<String> list = new ArrayList<String>();
 			Cursor c = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
 			final PackageManager pm = context.getPackageManager();
 			while (c.moveToNext()) {
-				list.add(c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)) + " - " + 
-						c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
+				String name = c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+				String num = c.getString(c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+				if (name != null && !name.equals("") && num != null && !num.equals("")) {
+					list.add(name + " - " + num);
+				}
 			}
+		
 			List<ApplicationInfo> applications = context.getPackageManager().getInstalledApplications(0);
 			for (int n=0; n < applications.size(); n++) {
 				if ((applications.get(n).flags & ApplicationInfo.FLAG_SYSTEM) != 1) {
@@ -359,7 +395,7 @@ public class MenuPopup {
 			}
 			return (String[]) itemsFinal.toArray(new String[itemsFinal.size()]);	
 		}
-
+		
 		private void setupHotseats(LinearLayout dock, Context ctx) {
 			DBAdapter db = new DBAdapter(ctx);
 			db.open();
@@ -377,6 +413,9 @@ public class MenuPopup {
 			}
 			c.close();
 			db.close();
+			if (dock.getChildCount() < 1) {
+				dock.setVisibility(View.GONE);
+			}
 		}
 
 		@Override

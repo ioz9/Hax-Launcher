@@ -1,22 +1,22 @@
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/linearLayout1"
         android:layout_width="fill_parent"
-        android:orientation="vertical" 
-        android:layout_height="fill_parent"
-        android:src="@android:color/black"
-        android:background="@drawable/popup_frame" >
+        android:layout_height="wrap_content"
+        android:background="@drawable/popup_frame"
+        android:orientation="vertical"
+        android:src="@android:color/black" >
 
  	    <ViewFlipper
-	        android:id="@+id/title_flipper"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:background="@android:color/black" >    
+ 	        android:id="@+id/title_flipper"
+ 	        android:layout_width="match_parent"
+ 	        android:layout_height="wrap_content"
+ 	        android:background="@null" >
 	        
  	        <RelativeLayout
-				android:id="@+id/title_main"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:orientation="horizontal" >
+ 	            android:id="@+id/title_main"
+ 	            android:layout_width="match_parent"
+ 	            android:layout_height="wrap_content"
+ 	            android:orientation="horizontal" >
 		
 		       <TextView
 		           android:id="@+id/search_main"
@@ -84,16 +84,16 @@
 		</ViewFlipper>	
 		        
  	    <ViewFlipper
-	        android:id="@+id/flipper"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:background="@android:color/black" >
+ 	        android:id="@+id/flipper"
+ 	        android:layout_width="match_parent"
+ 	        android:layout_height="wrap_content" >
 	        
 	    <include
             android:id="@+id/menu_main"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             layout="@layout/menu_main" />
+	    
 	    <include
             android:id="@+id/menu_search"
             android:layout_width="wrap_content"
@@ -102,16 +102,14 @@
 		</ViewFlipper>	
 		
  	    <HorizontalScrollView
- 	    	android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+ 	        android:layout_width="match_parent"
+ 	        android:layout_height="wrap_content">
 	    
 			<LinearLayout
-				android:id="@+id/dock"
-			 	android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:layout_below="@+id/settings"
-				android:background="@android:color/black"
-				android:gravity="center"
-				android:orientation="horizontal"/>
+			    android:id="@+id/dock"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_gravity="center"
+			    android:orientation="horizontal" />
 		</HorizontalScrollView>
 </LinearLayout>
