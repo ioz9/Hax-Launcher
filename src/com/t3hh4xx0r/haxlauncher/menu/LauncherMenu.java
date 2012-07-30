@@ -85,6 +85,8 @@ public class LauncherMenu extends RelativeLayout {
     static String[] hotseatIntents;
     DockItemView hotseat;
     Cursor c;
+    WeatherLivePanel panel;
+    public static final int WEATHER_PANEL_ID = 9999;
     
     private static Animation slideLeftIn;
     private static Animation slideLeftOut;
@@ -291,6 +293,10 @@ public class LauncherMenu extends RelativeLayout {
 				startApplication(hotseatIntents[v.getId()]);
 			} else if (v.getId() == R.id.back) {
 				flipTo(flipper.getDisplayedChild()-1);
+			} else if (v.getId() == WEATHER_PANEL_ID) {
+				if (!panel.mHandler.hasMessages(WeatherLivePanel.QUERY_WEATHER)) {
+	                panel.mHandler.sendEmptyMessage(panel.QUERY_WEATHER);
+	            }
 			}
 		}
 	};
@@ -317,7 +323,6 @@ public class LauncherMenu extends RelativeLayout {
 	    intent.addCategory("android.intent.category.LAUNCHER");
 	    intent.setComponent(new ComponentName(packageName, name));
 	    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
 	    mContext.startActivity(intent);
 	}
 	
@@ -392,8 +397,10 @@ public class LauncherMenu extends RelativeLayout {
 		lp.setMargins(0, 0, 0, 64);
 		//modify please
 		if (true) {
-			WeatherLivePanel panel = new WeatherLivePanel(context);
+			panel = new WeatherLivePanel(context);
+			panel.setId(WEATHER_PANEL_ID);
 			((ViewGroup) v).addView(panel, lp);
+			panel.setOnClickListener(listener);
 		}
 	}
 }
