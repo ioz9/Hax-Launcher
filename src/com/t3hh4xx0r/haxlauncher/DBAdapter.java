@@ -62,6 +62,7 @@ public class DBAdapter {
     
     public Cursor getAllHotseats() {
     	Cursor mCursor = db.query("hotseats", new String[] {
+        		"_id",
         		"icon",
         		"name",
         		"intent"}, 
@@ -72,6 +73,11 @@ public class DBAdapter {
                 null);
 	
 		return mCursor;
+    }
+    
+    public boolean removeHotseat(String i) {
+        return db.delete("hotseats", "intent" + 
+        		"= ?", new String[] {i}) > 0;        		
     }
     
 }

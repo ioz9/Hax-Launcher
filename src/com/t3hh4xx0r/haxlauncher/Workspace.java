@@ -2878,14 +2878,14 @@ public class Workspace extends SmoothPagedView
             boolean isOverFolder = dragOverView instanceof FolderIcon;
             if (mTargetCell[0] == 0 && mTargetCell[1] == 0) {            	
             	//shitfuck
-            	if (!isOverFolder && dragOverView != null && dragOverView.getContext() != null && !mLauncher.menuIsOpen && !mLauncher.isAllAppsVisible()) {
-            		mLauncher.handleMenuClick(dragOverView);
-            		Log.d("OPTIONS", Boolean.toString(mLauncher.isAllAppsCustomizeOpen())+":"+Boolean.toString(mLauncher.isAllAppsVisible()));
-            	}
+//            	if (!isOverFolder && dragOverView != null && dragOverView.getContext() != null && !mLauncher.menuIsOpen && !mLauncher.isAllAppsVisible()) {
+//            		mLauncher.handleMenuClick();
+//            		Log.d("OPTIONS", Boolean.toString(mLauncher.isAllAppsCustomizeOpen())+":"+Boolean.toString(mLauncher.isAllAppsVisible()));
+//            	}
             } else {
-            	if (mLauncher.menuIsOpen && mLauncher.dw != null) {
-            		mLauncher.dw.dismiss();
-            	}
+//            	if (mLauncher.menuIsOpen && mLauncher.dw != null) {
+//            		mLauncher.dw.dismiss();
+//            	}
             }
             
             if (dragOverView != mLastDragOverView) {
@@ -3175,7 +3175,7 @@ public class Workspace extends SmoothPagedView
 			packageName = ((ShortcutInfo) info).intent.toString().split("cmp=")[1].split("/")[0];
     	}
 		if (place[0] == 0 && place[1] == 0) {       
-			mLauncher.handleMenuClick(null);
+			//mLauncher.handleMenuClick();
 			switch (info.itemType) {
 	        case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
 	        	Log.d("ITEM TYPE", "IS A APPLICATION");

@@ -95,6 +95,8 @@ import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -104,7 +106,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.t3hh4xx0r.haxlauncher.DropTarget.DragObject;
-import com.t3hh4xx0r.haxlauncher.menu.MenuPopup;
+import com.t3hh4xx0r.haxlauncher.menu.LauncherMenu;
 import com.t3hh4xx0r.haxlauncher.preferences.PreferencesProvider;
 
 /**
@@ -196,11 +198,10 @@ public final class Launcher extends Activity
     private int[] mTmpAddItemCellCoordinates = new int[2];
 
     private FolderInfo mFolderInfo;
-    public MenuPopup.DemoPopupWindow dw;
 
     private Hotseat mHotseat;
     View mMenuButton;
-
+    
     private SearchDropTargetBar mSearchDropTargetBar;
     private AppsCustomizeTabHost mAppsCustomizeTabHost;
     private AppsCustomizePagedView mAppsCustomizeContent;
@@ -224,6 +225,9 @@ public final class Launcher extends Activity
     private boolean mUserPresent = true;
     private boolean mVisible = false;
     private boolean mAttached = false;
+    
+    Launcher mLauncher;
+    LauncherMenu mMenu;
 
     private static LocaleConfiguration sLocaleConfiguration = null;
 
@@ -282,6 +286,8 @@ public final class Launcher extends Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         LauncherApplication app = ((LauncherApplication)getApplication());
+        mMenu = new LauncherMenu(this);
+        mLauncher = this;
         mModel = app.setLauncher(this);
         mIconCache = app.getIconCache();
         mDragController = new DragController(this);
@@ -775,6 +781,7 @@ public final class Launcher extends Activity
         if (mHotseat != null) {
             mHotseat.setup(this);
         }
+
 
         // Setup the workspace
         mWorkspace.setHapticFeedbackEnabled(false);
@@ -1732,7 +1739,7 @@ public final class Launcher extends Activity
             if (mState == State.APPS_CUSTOMIZE) {
                 showWorkspace(true);
             } else {
-                handleMenuClick(v);
+                handleMenuClick();
             }
         }
     }
@@ -1879,24 +1886,28 @@ public final class Launcher extends Activity
         }
     }
     
-    void handleMenuClick(final View v) {
-    	if (menuIsOpen) {
-    		dw.dismiss();
+    void handleMenuClick() {    	
+    	if (mMenu.isVisible()) {
+    		removeMenu();
     	} else {
-	        dw = new MenuPopup.DemoPopupWindow(v, this);        
-	        dw.showLikeQuickAction(0, 0);
-	        menuIsOpen = true;
-	        ((BubbleTextView) v).setCompoundDrawablesWithIntrinsicBounds(null,
-	                v.getContext().getResources().getDrawable(R.drawable.startmenu_close), null, null);
-	        dw.setOnDismissListener(new OnDismissListener() {
-				@Override
-				public void onDismiss() {
-					menuIsOpen = false;
-			        ((BubbleTextView) v).setCompoundDrawablesWithIntrinsicBounds(null,
-			                v.getContext().getResources().getDrawable(R.drawable.startmenu_open), null, null);
-			        }        	        	
-	        });
+    		addMenu();
     	}
+    }
+
+    public void addMenu() {
+  		mDragLayer.addView(mMenu);
+  		mHotseat.menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
+				this.getResources().getDrawable(R.drawable.startmenu_close), null, null);
+
+    }
+        
+    public void removeMenu() {
+    	Animation slideLeftOut = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
+        mMenu.startAnimation(slideLeftOut);
+		((ViewGroup)mMenu.getParent()).removeView(mMenu);
+		mHotseat.menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
+				this.getResources().getDrawable(R.drawable.startmenu_open), null, null);
+
     }
     
     public void setHotseat(int pos, Bitmap icon, String name, String i) {
@@ -2515,6 +2526,9 @@ public final class Launcher extends Activity
 
         // Hide the search bar and hotseat
         mSearchDropTargetBar.hideSearchBar(animated);
+    	if (mMenu.isVisible()) {
+    		removeMenu();
+    	}
 
         // Change the state *after* we've called all the transition code
         mState = State.APPS_CUSTOMIZE;
@@ -3292,6 +3306,7 @@ public final class Launcher extends Activity
 
         return true;
     }
+    
     private Cling initCling(int clingId, int[] positionData, boolean animate, int delay) {
         Cling cling = (Cling) findViewById(clingId);
         if (cling != null) {

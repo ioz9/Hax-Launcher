@@ -59,7 +59,7 @@ public class IconCache {
                 mIconDpi = DisplayMetrics.DENSITY_HIGH;
             } else if (density == DisplayMetrics.DENSITY_HIGH) {
                 mIconDpi = DisplayMetrics.DENSITY_XHIGH;
-            } else if (density == DisplayMetrics.DENSITY_XHIGH) {
+            } else {
                 // We'll need to use a denser icon, or some sort of a mipmap
                 mIconDpi = DisplayMetrics.DENSITY_XHIGH;
             }

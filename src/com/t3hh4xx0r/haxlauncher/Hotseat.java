@@ -37,6 +37,7 @@ public class Hotseat extends FrameLayout {
     private int mCellCountX;
     private int mCellCountY;
     private boolean mIsLandscape;
+    BubbleTextView menuButton;
 
     public Hotseat(Context context) {
         this(context, null);
@@ -98,7 +99,7 @@ public class Hotseat extends FrameLayout {
         // Add the Apps button
         Context context = getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
-        BubbleTextView menuButton = (BubbleTextView)
+        menuButton = (BubbleTextView)
                 inflater.inflate(R.layout.application, mContent, false);
         menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
                 context.getResources().getDrawable(R.drawable.startmenu_open), null, null);
@@ -119,7 +120,7 @@ public class Hotseat extends FrameLayout {
             @Override
             public void onClick(android.view.View v) {
                 if (mLauncher != null) {
-                	mLauncher.handleMenuClick(v);
+                	mLauncher.handleMenuClick();
                 	
                 }
             }
