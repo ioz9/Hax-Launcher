@@ -5,9 +5,6 @@ import java.util.Date;
 
 import org.w3c.dom.Document;
 
-import com.t3hh4xx0r.haxlauncher.R;
-import com.t3hh4xx0r.haxlauncher.preferences.PreferencesProvider;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
@@ -17,15 +14,15 @@ import android.location.LocationManager;
 import android.os.Handler;
 import android.os.Message;
 import android.text.format.DateFormat;
-import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.t3hh4xx0r.haxlauncher.R;
+import com.t3hh4xx0r.haxlauncher.preferences.PreferencesProvider;
 
 public class WeatherLivePanel extends RelativeLayout {
 	
@@ -75,7 +72,6 @@ public class WeatherLivePanel extends RelativeLayout {
                     public void run() {
                         LocationManager locationManager = (LocationManager) getContext().
                                 getSystemService(Context.LOCATION_SERVICE);
-                        final ContentResolver resolver = getContext().getContentResolver();
                         //change me
                         boolean useCustomLoc = false;
                         String customLoc = null;
@@ -116,7 +112,6 @@ public class WeatherLivePanel extends RelativeLayout {
                 queryWeather.start();
                 break;
             case UPDATE_WEATHER:
-            	Toast.makeText(getContext(), "UPDATIG", Toast.LENGTH_SHORT).show();
                String woeid = (String) msg.obj;
                 if (woeid != null) {
                     WeatherInfo w = null;
@@ -124,18 +119,14 @@ public class WeatherLivePanel extends RelativeLayout {
                         w = parseXml(getDocument(woeid));
                     } catch (Exception e) {
                     	e.printStackTrace();
-                    	Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                     if (w == null) {
-                    	Toast.makeText(getContext(), "FAILE2", Toast.LENGTH_SHORT).show();
                         setNoWeatherData();
                     } else {
-                    	Toast.makeText(getContext(), "W))TAGE", Toast.LENGTH_SHORT).show();
                         setWeatherData(w);
                         mWeatherInfo = w;
                     }
                 } else {
-                	Toast.makeText(getContext(), "FAILER", Toast.LENGTH_SHORT).show();
                     if (mWeatherInfo.temp.equals(WeatherInfo.NODATA)) {
                         setNoWeatherData();
                     } else {
@@ -151,8 +142,6 @@ public class WeatherLivePanel extends RelativeLayout {
      * Reload the weather forecast
      */
     public void refreshWeather(boolean force) {
-    	Toast.makeText(getContext(), "REFRESHING", Toast.LENGTH_SHORT).show();
-        final ContentResolver resolver = getContext().getContentResolver();
         boolean showWeather = PreferencesProvider.Interface.LivePanel.getEnableWeather(getContext());
         if (showWeather) {
             final long interval = PreferencesProvider.Interface.LivePanel.getWeatherInterval(getContext()); // Default to hourly
@@ -169,9 +158,7 @@ public class WeatherLivePanel extends RelativeLayout {
      * @param w
      */
     private void setWeatherData(WeatherInfo w) {
-        final ContentResolver resolver = getContext().getContentResolver();
         final Resources res = getContext().getResources();
-        Toast.makeText(getContext(), w.temp, Toast.LENGTH_SHORT).show();
         if (mWeatherPanel != null) {
             if (mWeatherCity != null) {
                 mWeatherCity.setText(w.city);
@@ -218,7 +205,6 @@ public class WeatherLivePanel extends RelativeLayout {
      * 'Tap to reload' message
      */
     private void setNoWeatherData() {
-        final ContentResolver resolver = getContext().getContentResolver();
         boolean useMetric = PreferencesProvider.Interface.LivePanel.getUseMetric(getContext());
 
         if (mWeatherPanel != null) {

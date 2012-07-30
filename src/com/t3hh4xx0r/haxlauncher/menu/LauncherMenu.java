@@ -295,7 +295,7 @@ public class LauncherMenu extends RelativeLayout {
 				flipTo(flipper.getDisplayedChild()-1);
 			} else if (v.getId() == WEATHER_PANEL_ID) {
 				if (!panel.mHandler.hasMessages(WeatherLivePanel.QUERY_WEATHER)) {
-	                panel.mHandler.sendEmptyMessage(panel.QUERY_WEATHER);
+	                panel.mHandler.sendEmptyMessage(WeatherLivePanel.QUERY_WEATHER);
 	            }
 			}
 		}
