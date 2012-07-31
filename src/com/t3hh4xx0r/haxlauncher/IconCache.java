@@ -53,9 +53,10 @@ public class IconCache {
         mContext = context;
         mPackageManager = context.getPackageManager();
         ActivityManager activitymanager = (ActivityManager)context.getSystemService("activity");
-        mIconDpi = activitymanager.getLauncherLargeIconDensity();
-//        int density = context.getResources().getDisplayMetrics().densityDpi;
-//        if (LauncherApplication.isScreenLarge()) {
+        int density = context.getResources().getDisplayMetrics().densityDpi;
+        if (LauncherApplication.isScreenLarge()) {
+            mIconDpi = activitymanager.getLauncherLargeIconDensity();
+
 //            if (density == DisplayMetrics.DENSITY_LOW) {
 //                mIconDpi = DisplayMetrics.DENSITY_MEDIUM;
 //            } else if (density == DisplayMetrics.DENSITY_MEDIUM) {
@@ -64,11 +65,10 @@ public class IconCache {
 //                mIconDpi = DisplayMetrics.DENSITY_XHIGH;
 //            } else {
 //                // We'll need to use a denser icon, or some sort of a mipmap
-//                mIconDpi = DisplayMetrics.DENSITY_XHIGH;
 //            }
-//        } else {
-//            mIconDpi = context.getResources().getDisplayMetrics().densityDpi;
-//        }
+        } else {
+            mIconDpi = context.getResources().getDisplayMetrics().densityDpi;
+        }
         // need to set mIconDpi before getting default icon
         mDefaultIcon = makeDefaultIcon();
     }

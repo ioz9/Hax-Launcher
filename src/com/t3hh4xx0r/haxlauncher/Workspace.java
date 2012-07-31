@@ -299,11 +299,7 @@ public class Workspace extends SmoothPagedView
 
             final float actionBarHeight = actionBarSizeTypedArray.getDimension(0, 0f);
             final float systemBarHeight = res.getDimension(R.dimen.status_bar_height);
-            float smallestScreenDim = res.getConfiguration().smallestScreenWidthDp;
-
-            if (LauncherApplication.isScreenLarge()) {
-            	smallestScreenDim = res.getConfiguration().smallestScreenWidthDp * localDisplayMetrics.density;
-            }
+        	final float smallestScreenDim = res.getConfiguration().smallestScreenWidthDp * localDisplayMetrics.density;
             
             cellCountX = 1;
             while (CellLayout.widthInPortrait(res, cellCountX + 1) <= smallestScreenDim) {
