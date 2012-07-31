@@ -59,6 +59,7 @@ import android.graphics.drawable.Drawable;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
@@ -161,7 +162,7 @@ public class Workspace extends SmoothPagedView
     private float mSpringLoadedShrinkFactor;
 
     private static final int DEFAULT_CELL_COUNT_X = 4;
-    private static final int DEFAULT_CELL_COUNT_Y = 4;
+    private static final int DEFAULT_CELL_COUNT_Y = 5;
 
     // State variable that indicates whether the pages are small (ie when you're
     // in all apps or customize mode)
@@ -294,10 +295,16 @@ public class Workspace extends SmoothPagedView
             // landscape
             TypedArray actionBarSizeTypedArray =
                 context.obtainStyledAttributes(new int[] { android.R.attr.actionBarSize });
+            DisplayMetrics localDisplayMetrics = res.getDisplayMetrics();
+
             final float actionBarHeight = actionBarSizeTypedArray.getDimension(0, 0f);
             final float systemBarHeight = res.getDimension(R.dimen.status_bar_height);
-            final float smallestScreenDim = res.getConfiguration().smallestScreenWidthDp;
+            float smallestScreenDim = res.getConfiguration().smallestScreenWidthDp;
 
+            if (LauncherApplication.isScreenLarge()) {
+            	smallestScreenDim = res.getConfiguration().smallestScreenWidthDp * localDisplayMetrics.density;
+            }
+            
             cellCountX = 1;
             while (CellLayout.widthInPortrait(res, cellCountX + 1) <= smallestScreenDim) {
                 cellCountX++;

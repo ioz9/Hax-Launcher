@@ -16,6 +16,7 @@
 
 package com.t3hh4xx0r.haxlauncher;
 
+import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -51,21 +52,23 @@ public class IconCache {
     public IconCache(LauncherApplication context) {
         mContext = context;
         mPackageManager = context.getPackageManager();
-        int density = context.getResources().getDisplayMetrics().densityDpi;
-        if (LauncherApplication.isScreenLarge()) {
-            if (density == DisplayMetrics.DENSITY_LOW) {
-                mIconDpi = DisplayMetrics.DENSITY_MEDIUM;
-            } else if (density == DisplayMetrics.DENSITY_MEDIUM) {
-                mIconDpi = DisplayMetrics.DENSITY_HIGH;
-            } else if (density == DisplayMetrics.DENSITY_HIGH) {
-                mIconDpi = DisplayMetrics.DENSITY_XHIGH;
-            } else {
-                // We'll need to use a denser icon, or some sort of a mipmap
-                mIconDpi = DisplayMetrics.DENSITY_XHIGH;
-            }
-        } else {
-            mIconDpi = context.getResources().getDisplayMetrics().densityDpi;
-        }
+        ActivityManager activitymanager = (ActivityManager)context.getSystemService("activity");
+        mIconDpi = activitymanager.getLauncherLargeIconDensity();
+//        int density = context.getResources().getDisplayMetrics().densityDpi;
+//        if (LauncherApplication.isScreenLarge()) {
+//            if (density == DisplayMetrics.DENSITY_LOW) {
+//                mIconDpi = DisplayMetrics.DENSITY_MEDIUM;
+//            } else if (density == DisplayMetrics.DENSITY_MEDIUM) {
+//                mIconDpi = DisplayMetrics.DENSITY_HIGH;
+//            } else if (density == DisplayMetrics.DENSITY_HIGH) {
+//                mIconDpi = DisplayMetrics.DENSITY_XHIGH;
+//            } else {
+//                // We'll need to use a denser icon, or some sort of a mipmap
+//                mIconDpi = DisplayMetrics.DENSITY_XHIGH;
+//            }
+//        } else {
+//            mIconDpi = context.getResources().getDisplayMetrics().densityDpi;
+//        }
         // need to set mIconDpi before getting default icon
         mDefaultIcon = makeDefaultIcon();
     }

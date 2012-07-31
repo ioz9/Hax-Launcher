@@ -816,6 +816,10 @@ public final class Launcher extends Activity
         }
     }
 
+    public void onClickAllAppsButton(View v) {
+    	handleMenuClick();
+    }
+    
     public View getMenu() {
     	mMenuButton = findViewById(R.id.all_apps_button);
         if (mMenuButton != null) {
@@ -1896,8 +1900,13 @@ public final class Launcher extends Activity
 
     public void addMenu() {
   		mDragLayer.addView(mMenu);
-  		mHotseat.menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
-				this.getResources().getDrawable(R.drawable.startmenu_close), null, null);
+  		//fuck your life
+  		try {
+	  		mHotseat.menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
+					this.getResources().getDrawable(R.drawable.startmenu_close), null, null);
+  		} catch (Exception e) {
+  			
+  		}
 
     }
         
@@ -1905,8 +1914,13 @@ public final class Launcher extends Activity
     	Animation slideLeftOut = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
         mMenu.startAnimation(slideLeftOut);
 		((ViewGroup)mMenu.getParent()).removeView(mMenu);
-		mHotseat.menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
-				this.getResources().getDrawable(R.drawable.startmenu_open), null, null);
+		//fuck your life
+		try {
+			mHotseat.menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
+					this.getResources().getDrawable(R.drawable.startmenu_open), null, null);
+		} catch (Exception e) {
+			
+		}
 
     }
     
