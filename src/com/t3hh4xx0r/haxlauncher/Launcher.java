@@ -508,7 +508,9 @@ public final class Launcher extends Activity
                 result = true;
                 break;
             case REQUEST_PICK_APPWIDGET:
-                addAppWidgetFromPick(args.intent);
+                addAppWidget(args.intent);
+                Log.d("DFSJLDGHAHFLREJK", "ldhajkgfkjhwcmeagf,dgwke,jhs");
+                //addAppWidgetFromPick(args.intent);
                 break;
             case REQUEST_CREATE_APPWIDGET:
                 int appWidgetId = args.intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
@@ -1464,6 +1466,24 @@ public final class Launcher extends Activity
         mPendingAddInfo.dropPos = null;
     }
 
+    
+    void addAppWidget(Intent data) {
+        int appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
+        AppWidgetProviderInfo appWidget = mAppWidgetManager.getAppWidgetInfo(appWidgetId);
+
+        if (appWidget.configure != null) {
+            // Launch over to configure widget, if needed
+            Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
+            intent.setComponent(appWidget.configure);
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+
+            startActivityForResultSafely(intent, REQUEST_CREATE_APPWIDGET);
+        } else {
+            // Otherwise just add it
+            onActivityResult(REQUEST_CREATE_APPWIDGET, Activity.RESULT_OK, data);
+        }
+    }
+    
     void addAppWidgetFromPick(Intent data) {
         // TODO: catch bad widget exception when sent
         int appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
@@ -2059,7 +2079,8 @@ public final class Launcher extends Activity
                 // User long pressed on empty space
                 mWorkspace.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
                         HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
-                startWallpaper();
+                showAddDialog();
+                //startWallpaper();
             } else {
                 if (!(itemUnderLongClick instanceof Folder)) {
                     // User long pressed on an item
@@ -2808,7 +2829,6 @@ public final class Launcher extends Activity
         	return false;
         }
         
-//        ComponentName activityName = searchManager.getGlobalSearchActivity();
         if (activityName != null) {
             int coi = getCurrentOrientationIndexForGlobalIcons();
             sGlobalSearchIcon[coi] = updateButtonWithIconFromExternalActivity(
@@ -2926,7 +2946,8 @@ public final class Launcher extends Activity
         }
 
         public void onDismiss(DialogInterface dialog) {
-            mWaitingForResult = false;
+        	Toast.makeText(Launcher.this, "I got called yo", Toast.LENGTH_SHORT).show();
+        	mWaitingForResult = false;
             cleanup();
         }
 
@@ -2954,10 +2975,16 @@ public final class Launcher extends Activity
                     break;
                 }
                 case AddAdapter.ITEM_APPWIDGET: {
-                    if (mAppsCustomizeTabHost != null) {
-                        mAppsCustomizeTabHost.selectWidgetsTab();
-                    }
-                    showAllApps(true);
+//                    if (mAppsCustomizeTabHost != null) {
+//                        mAppsCustomizeTabHost.selectWidgetsTab();
+//                    }
+//                    showAllApps(true);
+                	int appWidgetId = Launcher.this.mAppWidgetHost.allocateAppWidgetId();
+
+                    Intent pickIntent = new Intent(AppWidgetManager.ACTION_APPWIDGET_PICK);
+                    pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+                    // start the pick activity
+                    startActivityForResult(pickIntent, REQUEST_PICK_APPWIDGET);
                     break;
                 }
                 case AddAdapter.ITEM_WALLPAPER: {
