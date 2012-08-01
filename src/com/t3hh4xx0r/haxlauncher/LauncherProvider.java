@@ -904,28 +904,16 @@ public class LauncherProvider extends ContentProvider {
         private ComponentName getSearchWidgetProvider() {
             SearchManager searchManager =
                     (SearchManager) mContext.getSystemService(Context.SEARCH_SERVICE);
-            
-            ComponentName searchComponent;
-            try
-            {
-	            Method getGlobalSearchActivity =
-	                     ComponentName.class.getDeclaredMethod("getGlobalSearchActivity");
-	            getGlobalSearchActivity.setAccessible(true);
-	            
-	//            ComponentName searchComponent = searchManager.getGlobalSearchActivity();
-	
-	            searchComponent = (ComponentName)
-	            		getGlobalSearchActivity.invoke(searchManager);
-            }
-            catch (Exception e)
-            {
-            	e.printStackTrace();
-            	return null;
-            }
+            //fix me
+            ComponentName searchComponent = null;
+            //if (searchComponent == null) return null;
+            //        com.google.android.googlequicksearchbox/.SearchActivity
 
-            if (searchComponent == null) return null;
-            return getProviderInPackage(searchComponent.getPackageName());
+            return (new ComponentName(
+            	    "com.google.android.googlequicksearchbox"
+            	    ,"com.google.android.googlequicksearchbox.SearchActivity"));
         }
+
 
         /**
          * Gets an appwidget provider from the given package. If the package contains more than
