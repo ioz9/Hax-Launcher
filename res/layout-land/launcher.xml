@@ -95,4 +95,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone" />  
+
+	<ImageView
+     	android:scaleType="fitXY"
+     	android:id="@+id/shade"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+	    android:src="@drawable/shade" />	 
+	       		     
 </com.t3hh4xx0r.haxlauncher.DragLayer>

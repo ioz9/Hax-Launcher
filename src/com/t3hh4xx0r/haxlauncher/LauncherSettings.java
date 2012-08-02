@@ -134,6 +134,7 @@ class LauncherSettings {
          */
         static final int CONTAINER_DESKTOP = -100;
         static final int CONTAINER_HOTSEAT = -101;
+        static final int CONTAINER_RECENT = -102;
 
         /**
          * The screen holding the favorite (if container is CONTAINER_DESKTOP)

@@ -57,6 +57,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -80,7 +81,7 @@ public class LauncherMenu extends RelativeLayout {
     RelativeLayout back;
     EditText searchBox;
     boolean attatched = false;
-    Context mContext;
+    static Context mContext;
     LinearLayout dock;
     static String[] hotseatIntents;
     DockItemView hotseat;
@@ -206,7 +207,24 @@ public class LauncherMenu extends RelativeLayout {
     protected void onAttachedToWindow() {
     	attatched = true;
         Animation slideLeftIn = AnimationUtils.loadAnimation(mContext, R.anim.slide_in_left);
+        final Animation fadeIn = AnimationUtils.loadAnimation(mContext, R.anim.fade_in_fast);
+        final ImageView shade = (ImageView) mLauncher.findViewById(R.id.shade);
         root.startAnimation(slideLeftIn);	
+        slideLeftIn.setAnimationListener(new AnimationListener() {
+			@Override
+			public void onAnimationEnd(Animation animation) {
+			}
+
+			@Override
+			public void onAnimationRepeat(Animation animation) {
+			}
+
+			@Override
+			public void onAnimationStart(Animation animation) {
+				shade.startAnimation(fadeIn);
+				shade.setVisibility(View.VISIBLE);
+			}
+        });
         setupHotseats(dock);
     	super.onAttachedToWindow();
     }
@@ -225,10 +243,10 @@ public class LauncherMenu extends RelativeLayout {
 
             Bitmap b = Bitmap.createBitmap(getMeasuredWidth(), getMeasuredHeight(),
                     Bitmap.Config.ARGB_8888);
-            Canvas c = new Canvas(b);
+            //Canvas c = new Canvas(b);
             canvas.drawBitmap(b, 0, 0, null);
-            c.drawColor(0x99000000);
-            c.setBitmap(null);
+            //c.drawColor(0x99000000);
+            //c.setBitmap(null);
             b = null;
         super.dispatchDraw(canvas);
     }    
@@ -301,7 +319,7 @@ public class LauncherMenu extends RelativeLayout {
 		}
 	};
 
-	public void startApplication(String packageName) {
+	public static void startApplication(String packageName) {
 	    try  {
 	        Intent intent = new Intent("android.intent.action.MAIN");
 	        intent.addCategory("android.intent.category.LAUNCHER");
@@ -318,7 +336,7 @@ public class LauncherMenu extends RelativeLayout {
 	    }
 	}
 
-	private void launchComponent(String packageName, String name) {
+	private static void launchComponent(String packageName, String name) {
 	    Intent intent = new Intent("android.intent.action.MAIN");
 	    intent.addCategory("android.intent.category.LAUNCHER");
 	    intent.setComponent(new ComponentName(packageName, name));

@@ -35,7 +35,6 @@ public class WeatherLivePanel extends RelativeLayout {
 		   LayoutInflater layoutInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		   mWeatherPanel = layoutInflater.inflate(R.layout.weather_lp, this);
 		   		   
-		// Weather panel
 	        mWeatherPanel = (RelativeLayout) findViewById(R.id.weather_panel);
 	        mWeatherCity = (TextView) findViewById(R.id.weather_city);
 	        mWeatherCondition = (TextView) findViewById(R.id.weather_condition);
@@ -66,7 +65,6 @@ public class WeatherLivePanel extends RelativeLayout {
         public void handleMessage(Message msg) {
             switch (msg.what) {
             case QUERY_WEATHER:
-            	Toast.makeText(getContext(), "QUERY", Toast.LENGTH_SHORT).show();
                 Thread queryWeather = new Thread(new Runnable() {
                     @Override
                     public void run() {

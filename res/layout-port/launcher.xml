@@ -17,7 +17,6 @@
 <com.t3hh4xx0r.haxlauncher.DragLayer
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:launcher="http://schemas.android.com/apk/res/com.t3hh4xx0r.haxlauncher"
-
     android:id="@+id/drag_layer"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -60,11 +59,24 @@
         <include android:id="@+id/cell5" layout="@layout/workspace_screen" />
     </com.t3hh4xx0r.haxlauncher.Workspace>
 
-    <include layout="@layout/hotseat"
-        android:id="@+id/hotseat"
+    <include layout="@layout/recents"
+        android:id="@+id/recents"
         android:layout_width="match_parent"
         android:layout_height="@dimen/button_bar_height_plus_padding"
         android:layout_gravity="bottom" />
+
+	<ImageView
+	    android:id="@+id/menu_button"
+   		android:focusable="true"
+        android:paddingTop="@dimen/button_bar_height_top_padding"
+        android:paddingBottom="15dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="@dimen/button_bar_width_right_padding"
+   		android:layout_height="wrap_content"
+   		android:layout_width="wrap_content"
+        android:layout_gravity="bottom"
+		android:src="@drawable/startmenu_open"
+   		android:background="@drawable/focusable_view_bg" />
 
     <include
         android:id="@+id/qsb_bar"
@@ -93,4 +105,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone" />    
+
+	<ImageView
+     	android:id="@+id/shade"
+     	android:scaleType="fitXY"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+	    android:src="@drawable/shade" />	 
+	       		 
 </com.t3hh4xx0r.haxlauncher.DragLayer>

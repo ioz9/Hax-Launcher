@@ -16,20 +16,32 @@
 
 package com.t3hh4xx0r.haxlauncher;
 
+import java.util.List;
+
+import android.app.ActivityManager;
+import android.app.ActivityManager.RecentTaskInfo;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.t3hh4xx0r.haxlauncher.R;
+import com.t3hh4xx0r.haxlauncher.menu.LauncherMenu;
 
-public class Hotseat extends FrameLayout {
-    private static final String TAG = "Hotseat";
-    private static final int sMenuRank = 0; // On the left
+public class Recents extends FrameLayout {
+    private static final String TAG = "Recents";
 
     private Launcher mLauncher;
     private CellLayout mContent;
@@ -37,19 +49,20 @@ public class Hotseat extends FrameLayout {
     private int mCellCountX;
     private int mCellCountY;
     private boolean mIsLandscape;
-    BubbleTextView menuButton;
+    Context ctx;
 
-    public Hotseat(Context context) {
+    public Recents(Context context) {
         this(context, null);
     }
 
-    public Hotseat(Context context, AttributeSet attrs) {
+    public Recents(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public Hotseat(Context context, AttributeSet attrs, int defStyle) {
+    public Recents(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
+        ctx = context;
         TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.Hotseat, defStyle, 0);
         mCellCountX = a.getInt(R.styleable.Hotseat_cellCountX, -1);
@@ -78,9 +91,6 @@ public class Hotseat extends FrameLayout {
     int getCellYFromOrder(int rank) {
         return mIsLandscape ? (mContent.getCountY() - (rank + 1)) : 0;
     }
-    public static boolean isMenuButtonRank(int rank) {
-        return rank == sMenuRank;
-    }
 
     @Override
     protected void onFinishInflate() {
@@ -89,56 +99,54 @@ public class Hotseat extends FrameLayout {
         if (mCellCountY < 0) mCellCountY = LauncherModel.getCellCountY();
         mContent = (CellLayout) findViewById(R.id.layout);
         mContent.setGridSize(mCellCountX, mCellCountY);
-
         resetLayout();
     }
 
     void resetLayout() {
         mContent.removeAllViewsInLayout();
+        setupRecents();
+    }
 
-        // Add the Apps button
-        Context context = getContext();
-        LayoutInflater inflater = LayoutInflater.from(context);
-        menuButton = (BubbleTextView)
-                inflater.inflate(R.layout.application, mContent, false);
-        menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
-                context.getResources().getDrawable(R.drawable.startmenu_open), null, null);
-        // allAppsButton.setText(context.getString(R.string.all_apps_button_label));
-        menuButton.setContentDescription(context.getString(R.string.all_apps_button_label));
-        menuButton.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (mLauncher != null &&
-                    (event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_DOWN) {
-                    mLauncher.onTouchDownMenuButton(v);
-                }
-                return false;
+    private void setupRecents() {
+    	ActivityManager actvityManager = (ActivityManager)
+    	ctx.getSystemService(Context.ACTIVITY_SERVICE);
+        final PackageManager pm = ctx.getPackageManager();
+    	List<RecentTaskInfo> apps = actvityManager.getRecentTasks(5, ActivityManager.RECENT_IGNORE_UNAVAILABLE);
+    	ResolveInfo homeInfo = pm.resolveActivity(
+                new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME),
+                0);
+    	int j = 0;
+    	for (int i=0;i<apps.size();i++) {
+    		final ActivityManager.RecentTaskInfo info = apps.get(i);
+            Intent intent = new Intent(info.baseIntent);
+            if (info.origActivity != null) {
+                intent.setComponent(info.origActivity);
             }
-        });
 
-        menuButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(android.view.View v) {
-                if (mLauncher != null) {
-                	mLauncher.handleMenuClick();
-                	
+            intent.setFlags((intent.getFlags()&~Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+                    | Intent.FLAG_ACTIVITY_NEW_TASK);
+            final ResolveInfo resolveInfo = pm.resolveActivity(intent, 0);
+            if (resolveInfo != null) {
+                final ActivityInfo activityInfo = resolveInfo.activityInfo;
+                final Drawable icon = activityInfo.loadIcon(pm);
+                ImageView image = new ImageView(ctx);
+                image.setImageDrawable(icon);
+                int x = getCellXFromOrder(j+i+1);
+                int y = getCellYFromOrder(j+1+i);
+                if (!activityInfo.name.equals("com.t3hh4xx0r.haxlauncher")) {                	
+                	mContent.addViewToCellLayout(image, -1, 0, new CellLayout.LayoutParams(x,y,1,1),
+                			true);                
+                	image.setOnClickListener(new OnClickListener() {
+                		@Override
+                		public void onClick(View v) {
+                			LauncherMenu.startApplication(activityInfo.packageName);
+                		}
+                	});
+                } else {
+                	j++;
+                	Log.d("APP", activityInfo.name);
                 }
             }
-        });
-        menuButton.setOnLongClickListener(new OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View v) {
-				mLauncher.showAllApps(true);
-				return true;
-			}
-        	
-        });
-
-        // Note: We do this to ensure that the hotseat is always laid out in the orientation of
-        // the hotseat in order regardless of which orientation they were added
-        int x = getCellXFromOrder(sMenuRank);
-        int y = getCellYFromOrder(sMenuRank);
-        mContent.addViewToCellLayout(menuButton, -1, 0, new CellLayout.LayoutParams(x,y,1,1),
-                true);
+    	}
     }
 }

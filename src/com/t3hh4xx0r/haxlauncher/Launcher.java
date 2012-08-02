@@ -27,6 +27,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -36,6 +37,9 @@ import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.ActivityManager.RecentTaskInfo;
+import android.app.ActivityManager.RunningAppProcessInfo;
+import android.app.ActivityManager.RunningTaskInfo;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.SearchManager;
@@ -57,6 +61,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
@@ -98,6 +103,7 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Animation.AnimationListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -199,7 +205,7 @@ public final class Launcher extends Activity
 
     private FolderInfo mFolderInfo;
 
-    private Hotseat mHotseat;
+    private Recents mRecents;
     View mMenuButton;
     
     private SearchDropTargetBar mSearchDropTargetBar;
@@ -369,9 +375,10 @@ public final class Launcher extends Activity
         if (LauncherApplication.isScreenLarge()) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         }
+        
     }
 
-    private void checkForLocaleChange() {
+	private void checkForLocaleChange() {
         if (sLocaleConfiguration == null) {
             new AsyncTask<Void, Void, LocaleConfiguration>() {
                 @Override
@@ -777,13 +784,37 @@ public final class Launcher extends Activity
 
         // Setup the drag layer
         mDragLayer.setup(this, dragController);
+        ImageView menuButton = (ImageView) findViewById(R.id.menu_button);
+        menuButton.setContentDescription(mLauncher.getString(R.string.all_apps_button_label));
+        menuButton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_DOWN) {
+                    onTouchDownMenuButton(v);
+                }
+                return false;
+            }
+        });
 
-        // Setup the hotseat
-        mHotseat = (Hotseat) findViewById(R.id.hotseat);
-        if (mHotseat != null) {
-            mHotseat.setup(this);
+        menuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(android.view.View v) {
+            	handleMenuClick();
+            }
+        });
+        menuButton.setOnLongClickListener(new OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				showAllApps(true);
+				return true;
+			}
+        	
+        });
+        // Setup the recent apps
+        mRecents = (Recents) findViewById(R.id.recents);
+        if (mRecents != null) {
+        	mRecents.setup(this);
         }
-
 
         // Setup the workspace
         mWorkspace.setHapticFeedbackEnabled(false);
@@ -1920,27 +1951,35 @@ public final class Launcher extends Activity
 
     public void addMenu() {
   		mDragLayer.addView(mMenu);
-  		//fuck your life
-  		try {
-	  		mHotseat.menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
-					this.getResources().getDrawable(R.drawable.startmenu_close), null, null);
-  		} catch (Exception e) {
-  			
-  		}
-
+  		ImageView menuButton = (ImageView) findViewById(R.id.menu_button);
+  		menuButton.setImageResource(R.drawable.startmenu_close);
     }
         
     public void removeMenu() {
-    	Animation slideLeftOut = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
+        final ImageView shade = (ImageView) findViewById(R.id.shade);
+        final Animation fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out_fast);
+        Animation slideLeftOut = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
+        slideLeftOut.setAnimationListener(new AnimationListener() {
+			@Override
+			public void onAnimationEnd(Animation animation) {
+				((ViewGroup)mMenu.getParent()).removeView(mMenu);
+			}
+
+			@Override
+			public void onAnimationRepeat(Animation animation) {
+			}
+
+			@Override
+			public void onAnimationStart(Animation animation) {
+				shade.startAnimation(fadeOut);
+				shade.setVisibility(View.GONE);
+			}
+        });
         mMenu.startAnimation(slideLeftOut);
-		((ViewGroup)mMenu.getParent()).removeView(mMenu);
 		//fuck your life
-		try {
-			mHotseat.menuButton.setCompoundDrawablesWithIntrinsicBounds(null,
-					this.getResources().getDrawable(R.drawable.startmenu_open), null, null);
-		} catch (Exception e) {
-			
-		}
+
+  		ImageView menuButton = (ImageView) findViewById(R.id.menu_button);
+  		menuButton.setImageResource(R.drawable.startmenu_open);
 
     }
     
@@ -1963,11 +2002,11 @@ public final class Launcher extends Activity
         PropertyValuesHolder scaleY = PropertyValuesHolder.ofFloat("scaleY", 1.5f);
 
         FolderInfo info = (FolderInfo) fi.getTag();
-        if (info.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
-            CellLayout cl = (CellLayout) fi.getParent().getParent();
-            CellLayout.LayoutParams lp = (CellLayout.LayoutParams) fi.getLayoutParams();
-            cl.setFolderLeaveBehindCell(lp.cellX, lp.cellY);
-        }
+//        if (info.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
+//            CellLayout cl = (CellLayout) fi.getParent().getParent();
+//            CellLayout.LayoutParams lp = (CellLayout.LayoutParams) fi.getLayoutParams();
+//            cl.setFolderLeaveBehindCell(lp.cellX, lp.cellY);
+//        }
 
         ObjectAnimator oa = ObjectAnimator.ofPropertyValuesHolder(fi, alpha, scaleX, scaleY);
         oa.setDuration(getResources().getInteger(R.integer.config_folderAnimDuration));
@@ -1982,9 +2021,9 @@ public final class Launcher extends Activity
 
         FolderInfo info = (FolderInfo) fi.getTag();
         CellLayout cl = null;
-        if (info.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
-            cl = (CellLayout) fi.getParent().getParent();
-        }
+//        if (info.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
+//            cl = (CellLayout) fi.getParent().getParent();
+//        }
 
         final CellLayout layout = cl;
         ObjectAnimator oa = ObjectAnimator.ofPropertyValuesHolder(fi, alpha, scaleX, scaleY);
@@ -2069,18 +2108,16 @@ public final class Launcher extends Activity
         if (longClickCellInfo == null) {
             return true;
         }
-
-        // The hotseat touch handling does not go through Workspace, and we always allow long press
-        // on hotseat items.
+        
         final View itemUnderLongClick = longClickCellInfo.cell;
-        boolean allowLongPress = isHotseatLayout(v) || mWorkspace.allowLongPress();
+        boolean allowLongPress = isRecentsLayout(v) || mWorkspace.allowLongPress();
+//        boolean allowLongPress = mWorkspace.allowLongPress();
         if (allowLongPress && !mDragController.isDragging()) {
             if (itemUnderLongClick == null) {
                 // User long pressed on empty space
                 mWorkspace.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
                         HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
                 showAddDialog();
-                //startWallpaper();
             } else {
                 if (!(itemUnderLongClick instanceof Folder)) {
                     // User long pressed on an item
@@ -2091,13 +2128,15 @@ public final class Launcher extends Activity
         return true;
     }
 
-    boolean isHotseatLayout(View layout) {
-        return mHotseat != null && layout != null &&
-                (layout instanceof CellLayout) && (layout == mHotseat.getLayout());
+    boolean isRecentsLayout(View layout) {
+        return mRecents != null && layout != null &&
+                (layout instanceof CellLayout) && (layout == mRecents.getLayout());
     }
-    Hotseat getHotseat() {
-        return mHotseat;
+    
+    Recents getRecents() {
+        return mRecents;
     }
+    
     SearchDropTargetBar getSearchBar() {
         return mSearchDropTargetBar;
     }
@@ -2106,9 +2145,9 @@ public final class Launcher extends Activity
      * Returns the CellLayout of the specified container at the specified screen.
      */
     CellLayout getCellLayout(long container, int screen) {
-        if (container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
-            if (mHotseat != null) {
-                return mHotseat.getLayout();
+        if (container == LauncherSettings.Favorites.CONTAINER_RECENT) {
+            if (mRecents != null) {
+                return mRecents.getLayout();
             } else {
                 return null;
             }
@@ -2461,7 +2500,7 @@ public final class Launcher extends Activity
 
         setPivotsForZoom(fromView, scaleFactor);
         updateWallpaperVisibility(true);
-        showHotseat(animated);
+//        showHotseat(animated);
         if (animated) {
             final float oldScaleX = fromView.getScaleX();
             final float oldScaleY = fromView.getScaleY();
@@ -2664,9 +2703,9 @@ public final class Launcher extends Activity
         if (!LauncherApplication.isScreenLarge()) {
             if (animated) {
                 int duration = mSearchDropTargetBar.getTransitionInDuration();
-                mHotseat.animate().alpha(1f).setDuration(duration);
+                mRecents.animate().alpha(1f).setDuration(duration);
             } else {
-                mHotseat.setAlpha(1f);
+            	mRecents.setAlpha(1f);
             }
         }
     }
@@ -2679,9 +2718,9 @@ public final class Launcher extends Activity
         if (!LauncherApplication.isScreenLarge()) {
             if (animated) {
                 int duration = mSearchDropTargetBar.getTransitionOutDuration();
-                mHotseat.animate().alpha(0f).setDuration(duration);
+                mRecents.animate().alpha(0f).setDuration(duration);
             } else {
-                mHotseat.setAlpha(0f);
+            	mRecents.setAlpha(0f);
             }
         }
     }
@@ -3061,8 +3100,8 @@ public final class Launcher extends Activity
             layoutParent.removeAllViewsInLayout();
         }
         mWidgetsToAdvance.clear();
-        if (mHotseat != null) {
-            mHotseat.resetLayout();
+        if (mRecents != null) {
+        	mRecents.resetLayout();
         }
     }
 
@@ -3078,14 +3117,8 @@ public final class Launcher extends Activity
         for (int i=start; i<end; i++) {
             final ItemInfo item = shortcuts.get(i);
 
-            // Short circuit if we are loading dock items for a configuration which has no dock
-            if (item.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT &&
-                    mHotseat == null) {
-                continue;
-            }
-
             switch (item.itemType) {
-                case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
+            case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
                 case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
                     View shortcut = createShortcut((ShortcutInfo)item);
                     workspace.addInScreen(shortcut, item.container, item.screen, item.cellX,
@@ -3098,6 +3131,9 @@ public final class Launcher extends Activity
                     workspace.addInScreen(newFolder, item.container, item.screen, item.cellX,
                             item.cellY, 1, 1, false);
                     break;
+                case LauncherSettings.Favorites.CONTAINER_RECENT:
+                	Log.d("LaUNCHER", "ADDING A RECENT");
+                	break;                	
             }
         }
         workspace.requestLayout();
